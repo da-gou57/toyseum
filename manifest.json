@@ -1,0 +1,16 @@
+{
+  "name": "Toyseum",
+  "short_name": "Toyseum",
+  "description": "玩具收藏館：館藏、典藏編號、徵集清單與預購追蹤。資料只存在你的手機。",
+  "lang": "zh-Hant-TW",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f5f0e6",
+  "theme_color": "#1f2a44",
+  "icons": [
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

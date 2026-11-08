@@ -1,0 +1,3092 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1f2a44">
+<meta name="description" content="玩具收藏品管理：館藏、典藏編號、徵集清單與預購追蹤。資料只存在你的手機。">
+<title>Toyseum</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./icon.png">
+<link rel="apple-touch-icon" href="./icon.png">
+<style>
+:root {
+  --bg: #f5f0e6;
+  --surface: #fffdf8;
+  --surface-2: #ebe4d6;
+  --line: #ddd3c1;
+  --text: #1d2233;
+  --muted: #6f6a5f;
+  --accent: #1f2a44;
+  --accent-ink: #ffffff;
+  --accent-soft: #dfe3ee;
+  --gold: #e8b33a;
+  --gold-ink: #1f2a44;
+  --gold-soft: #f7e8c2;
+  --warn: #a8660c;
+  --warn-soft: #f7e7cd;
+  --danger: #c2372a;
+  --danger-soft: #f6dcd8;
+  --info: #2f5fa8;
+  --info-soft: #dde6f5;
+  --ok: #2e7d5b;
+  --ok-soft: #dcefe4;
+  --shadow: 0 1px 2px rgba(31, 42, 68, .06), 0 4px 14px rgba(31, 42, 68, .07);
+  --radius: 14px;
+  --nav-h: 64px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #11151e;
+    --surface: #1a2030;
+    --surface-2: #252c3e;
+    --line: #313a50;
+    --text: #ece9e1;
+    --muted: #a3a2a0;
+    --accent: #e8b33a;
+    --accent-ink: #1f2a44;
+    --accent-soft: #3a3322;
+    --gold: #e8b33a;
+    --gold-ink: #1f2a44;
+    --gold-soft: #3a3322;
+    --warn: #e0a24e;
+    --warn-soft: #3a2f1c;
+    --danger: #ec7d72;
+    --danger-soft: #3d2320;
+    --info: #8fb2e3;
+    --info-soft: #1f2a3a;
+    --ok: #74c49d;
+    --ok-soft: #1d3329;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .25);
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding-bottom: calc(var(--nav-h) + var(--safe-b) + 12px);
+  overscroll-behavior-y: contain;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+h1, h2, h3 { margin: 0; line-height: 1.3; }
+a { color: var(--info); }
+
+/* ---------- top bar ---------- */
+.topbar {
+  position: sticky; top: 0; z-index: 20;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(10px);
+  padding: 14px 16px 10px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.topbar h1 { font-size: 22px; font-weight: 800; letter-spacing: .02em; }
+.topbar .sub { color: var(--muted); font-size: 13px; }
+.topbar .acts { display: flex; gap: 6px; }
+main { padding: 0 16px; max-width: 640px; margin: 0 auto; }
+
+/* ---------- tab bar ---------- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+  height: calc(var(--nav-h) + var(--safe-b));
+  padding-bottom: var(--safe-b);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: repeat(5, 1fr); align-items: center;
+}
+.tabbar button {
+  border: 0; background: none; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  color: var(--muted); font-size: 12px;
+}
+.tabbar button svg { width: 24px; height: 24px; }
+.tabbar button.active { color: var(--text); font-weight: 700; }
+.tabbar button.active svg { color: var(--accent); }
+.tabbar .fab {
+  width: 58px; height: 58px; border-radius: 50%; margin: -22px auto 0;
+  background: var(--gold); color: var(--gold-ink);
+  box-shadow: 0 6px 16px rgba(31, 42, 68, .3);
+  display: flex; align-items: center; justify-content: center;
+}
+.tabbar .fab svg { width: 30px; height: 30px; }
+
+/* ---------- generic ---------- */
+.card {
+  background: var(--surface); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 14px; margin: 0 0 12px;
+}
+.section-title {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  font-size: 15px; font-weight: 700; margin: 18px 2px 8px;
+}
+.section-title .count { color: var(--muted); font-weight: 500; font-size: 13px; }
+.muted { color: var(--muted); }
+.small { font-size: 13px; }
+.row { display: flex; align-items: center; gap: 10px; }
+.row.wrap { flex-wrap: wrap; }
+.grow { flex: 1; min-width: 0; }
+.spacer { height: 8px; }
+.hr { height: 1px; background: var(--line); margin: 12px 0; }
+.ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.num { font-variant-numeric: tabular-nums; }
+
+.btn {
+  border: 1px solid var(--line); background: var(--surface); color: var(--text);
+  border-radius: 12px; padding: 10px 14px; min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  font-weight: 600; font-size: 15px;
+}
+.btn:active { transform: scale(.98); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.gold { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.btn.danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); }
+.btn.ghost { border-color: transparent; background: transparent; }
+.btn.block { width: 100%; }
+.btn.sm { min-height: 36px; padding: 6px 10px; font-size: 14px; border-radius: 10px; }
+.btn[disabled] { opacity: .45; pointer-events: none; }
+.btn svg { width: 20px; height: 20px; flex: none; }
+.icon-btn {
+  width: 40px; height: 40px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface); display: inline-flex; align-items: center; justify-content: center; flex: none;
+}
+.icon-btn svg { width: 20px; height: 20px; }
+.icon-btn.ghost { border-color: transparent; background: transparent; }
+.icon-btn.on { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+
+.big-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 4px 0 6px; }
+.big-actions .btn { min-height: 68px; font-size: 16px; flex-direction: column; gap: 4px; border-radius: 16px; }
+.big-actions .btn svg { width: 26px; height: 26px; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+  background: var(--surface-2); color: var(--muted); white-space: nowrap;
+}
+.chip.danger { background: var(--danger-soft); color: var(--danger); }
+.chip.warn { background: var(--warn-soft); color: var(--warn); }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.info { background: var(--info-soft); color: var(--info); }
+.chip.gold { background: var(--gold-soft); color: var(--warn); }
+.code {
+  display: inline-block; font-size: 12px; font-weight: 800; letter-spacing: .04em;
+  padding: 1px 7px; border-radius: 6px; background: #1f2a44; color: #e8b33a;
+  font-variant-numeric: tabular-nums; white-space: nowrap; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+.code.lg { font-size: 15px; padding: 3px 10px; border-radius: 8px; }
+
+.banner {
+  border-radius: var(--radius); padding: 12px 14px; margin: 4px 0 12px;
+  display: flex; gap: 10px; align-items: center;
+  background: var(--warn-soft); color: var(--text);
+}
+.banner svg { width: 22px; height: 22px; color: var(--warn); flex: none; }
+.banner.info { background: var(--info-soft); }
+.banner.info svg { color: var(--info); }
+.banner.gold { background: var(--gold-soft); }
+
+/* ---------- item list ---------- */
+.list { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 12px; }
+.item {
+  display: flex; align-items: center; gap: 10px; padding: 12px 12px 12px 14px;
+  border-bottom: 1px solid var(--line); min-height: 60px;
+}
+.item:last-child { border-bottom: 0; }
+.item .main { flex: 1; min-width: 0; }
+.item .name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.item .meta { color: var(--muted); font-size: 13px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 2px; }
+.item .qty { font-weight: 700; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.item .qty small { display: block; color: var(--muted); font-weight: 500; font-size: 11px; }
+.item.tap:active { background: var(--surface-2); }
+.item.dim { opacity: .6; }
+
+details.group { margin-bottom: 10px; }
+details.group > summary {
+  list-style: none; display: flex; align-items: center; gap: 8px;
+  padding: 10px 4px; font-weight: 700; font-size: 15px;
+}
+details.group > summary::-webkit-details-marker { display: none; }
+details.group > summary .chev { transition: transform .2s; width: 18px; height: 18px; color: var(--muted); flex: none; }
+details.group[open] > summary .chev { transform: rotate(90deg); }
+details.group > summary .count { color: var(--muted); font-weight: 500; font-size: 13px; margin-left: auto; white-space: nowrap; }
+.sub-group-title { font-size: 13px; color: var(--muted); font-weight: 600; padding: 8px 14px 4px; background: var(--surface-2); }
+
+.empty { text-align: center; color: var(--muted); padding: 28px 16px; }
+.empty svg { width: 44px; height: 44px; opacity: .6; margin-bottom: 6px; }
+
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; background: var(--surface-2); border-radius: 12px; padding: 3px; gap: 3px; }
+.seg button { border: 0; background: transparent; border-radius: 9px; padding: 8px 4px; font-weight: 600; color: var(--muted); min-height: 38px; font-size: 14px; }
+.seg button.on { background: var(--surface); color: var(--text); box-shadow: var(--shadow); }
+
+.search {
+  display: flex; align-items: center; gap: 8px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; height: 46px; margin: 10px 0;
+}
+.search svg { width: 20px; height: 20px; color: var(--muted); flex: none; }
+.search input { border: 0; outline: 0; background: transparent; flex: 1; height: 100%; font-size: 16px; min-width: 0; }
+.filterbar { display: flex; gap: 6px; overflow-x: auto; padding: 0 0 8px; margin: -2px 0 2px; -webkit-overflow-scrolling: touch; }
+.filterbar button { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 999px; padding: 5px 12px; font-size: 13px; min-height: 34px; display: inline-flex; align-items: center; gap: 4px; }
+.filterbar button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.filterbar button svg { width: 16px; height: 16px; }
+
+/* ---------- forms ---------- */
+.field { margin-bottom: 14px; }
+.field > label, .field > .label { display: block; font-size: 13px; font-weight: 600; color: var(--muted); margin-bottom: 6px; }
+.input, select.input, textarea.input {
+  width: 100%; min-height: 46px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--surface); padding: 10px 12px; font-size: 16px; outline: none;
+}
+textarea.input { min-height: 72px; resize: vertical; }
+.input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+select.input { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; padding-right: 32px; }
+.hint { font-size: 12px; color: var(--muted); margin-top: 4px; }
+.ai-mark { font-size: 11px; font-weight: 700; color: var(--info); background: var(--info-soft); border-radius: 6px; padding: 0 6px; margin-left: 6px; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.stepper { display: flex; align-items: stretch; gap: 8px; }
+.stepper .icon-btn { width: 46px; height: 46px; }
+.stepper input { text-align: center; font-weight: 700; font-size: 18px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+.chips button {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 999px;
+  padding: 6px 12px; font-size: 14px; min-height: 36px;
+}
+.chips button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.switch-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.switch-row:last-child { border-bottom: 0; }
+.switch-row .grow > div:first-child { font-weight: 600; }
+.switch { position: relative; width: 50px; height: 30px; flex: none; }
+.switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.switch span { position: absolute; inset: 0; border-radius: 999px; background: var(--line); transition: .2s; }
+.switch span::after { content: ""; position: absolute; left: 3px; top: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: .2s; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.switch input:checked + span { background: var(--accent); }
+.switch input:checked + span::after { transform: translateX(20px); }
+
+/* ---------- settings list ---------- */
+.setting-row {
+  display: flex; align-items: center; gap: 12px; padding: 14px; border-bottom: 1px solid var(--line);
+  background: none; border-left: 0; border-right: 0; border-top: 0; width: 100%; text-align: left; min-height: 56px;
+}
+.setting-row:last-child { border-bottom: 0; }
+.setting-row svg.lead { width: 22px; height: 22px; color: var(--accent); flex: none; }
+.setting-row .chev { width: 18px; height: 18px; color: var(--muted); flex: none; }
+.setting-row .val { color: var(--muted); font-size: 14px; white-space: nowrap; }
+.setting-row.card-like { border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); margin-bottom: 10px; border: 0; }
+.edit-row { display: flex; align-items: center; gap: 6px; padding: 8px 10px 8px 14px; border-bottom: 1px solid var(--line); min-height: 54px; }
+.edit-row:last-child { border-bottom: 0; }
+.edit-row .icon-btn { width: 36px; height: 36px; border-color: transparent; background: transparent; color: var(--muted); }
+.edit-row .icon-btn[disabled] { opacity: .3; }
+
+/* ---------- overlays ---------- */
+.overlay { position: fixed; inset: 0; z-index: 100; }
+.overlay .backdrop { position: absolute; inset: 0; background: rgba(10, 14, 25, .5); opacity: 0; transition: opacity .2s; }
+.overlay.open .backdrop { opacity: 1; }
+.sheet {
+  position: absolute; left: 0; right: 0; bottom: 0; max-height: 92vh;
+  background: var(--bg); border-radius: 20px 20px 0 0;
+  transform: translateY(100%); transition: transform .24s cubic-bezier(.2, .8, .2, 1);
+  display: flex; flex-direction: column; max-width: 640px; margin: 0 auto;
+}
+.overlay.open .sheet { transform: translateY(0); }
+.sheet.full { height: 92vh; }
+.sheet-head { display: flex; align-items: center; gap: 8px; padding: 10px 10px 8px 18px; }
+.sheet-head h2 { font-size: 18px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-grip { width: 40px; height: 4px; border-radius: 2px; background: var(--line); margin: 8px auto 0; }
+.sheet-body { padding: 4px 16px 16px; overflow-y: auto; -webkit-overflow-scrolling: touch; flex: 1; }
+.sheet-foot { padding: 10px 16px calc(12px + var(--safe-b)); display: flex; gap: 10px; border-top: 1px solid var(--line); background: var(--bg); }
+.sheet-foot .btn { flex: 1; }
+
+/* camera */
+.cam { position: fixed; inset: 0; z-index: 200; background: #000; color: #fff; display: flex; flex-direction: column; }
+.cam video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cam .cam-top, .cam .cam-bottom { position: relative; z-index: 2; padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+.cam .cam-top { padding-top: calc(12px + env(safe-area-inset-top, 0px)); background: linear-gradient(rgba(0,0,0,.6), transparent); }
+.cam .cam-bottom { margin-top: auto; flex-direction: column; align-items: stretch; padding-bottom: calc(18px + var(--safe-b)); background: linear-gradient(transparent, rgba(0,0,0,.75)); }
+.cam .icon-btn { background: rgba(0,0,0,.4); border-color: rgba(255,255,255,.25); color: #fff; }
+.cam .icon-btn.on { background: #fff; color: #000; }
+.cam .frame {
+  position: absolute; z-index: 1; left: 50%; top: 42%; transform: translate(-50%, -50%);
+  width: min(78vw, 360px); height: min(48vw, 220px); border-radius: 18px;
+  box-shadow: 0 0 0 100vmax rgba(0,0,0,.45); border: 2px solid rgba(255,255,255,.9);
+}
+.cam .frame .laser { position: absolute; left: 8%; right: 8%; top: 50%; height: 2px; background: #e8b33a; box-shadow: 0 0 10px #e8b33a; animation: laser 1.8s ease-in-out infinite; }
+@keyframes laser { 0%, 100% { transform: translateY(-60px); opacity: .4; } 50% { transform: translateY(60px); opacity: 1; } }
+.cam .cam-msg { text-align: center; font-size: 15px; text-shadow: 0 1px 4px rgba(0,0,0,.8); min-height: 24px; }
+.cam .seg { background: rgba(255,255,255,.15); }
+.cam .seg button { color: rgba(255,255,255,.8); }
+.cam .seg button.on { background: #fff; color: #000; }
+.cam .shutter { width: 74px; height: 74px; border-radius: 50%; border: 4px solid #fff; background: rgba(255,255,255,.25); margin: 6px auto 0; }
+.cam .shutter:active { background: rgba(255,255,255,.6); }
+.cam .btn { background: rgba(255,255,255,.95); color: #111; border: 0; }
+.cam .btn.ghost { background: rgba(0,0,0,.35); color: #fff; }
+.cam .ghost-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .3; pointer-events: none; z-index: 1; }
+
+/* toast */
+#toast {
+  position: fixed; left: 50%; bottom: calc(var(--nav-h) + var(--safe-b) + 14px);
+  transform: translate(-50%, 20px); opacity: 0; pointer-events: none; z-index: 300;
+  background: #1f2a44; color: #fff; border-radius: 12px; padding: 10px 14px;
+  display: flex; align-items: center; gap: 12px; font-size: 15px; box-shadow: 0 6px 20px rgba(0,0,0,.25);
+  transition: .22s; max-width: calc(100vw - 32px); width: max-content;
+}
+#toast.show { transform: translate(-50%, 0); opacity: 1; pointer-events: auto; }
+#toast span { flex: 1; }
+#toast button { border: 0; background: none; color: #e8b33a; font-weight: 700; padding: 4px 2px; white-space: nowrap; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat { background: var(--surface); border-radius: 12px; padding: 10px 12px; box-shadow: var(--shadow); }
+.stat .k { font-size: 12px; color: var(--muted); }
+.stat .v { font-size: 19px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.stat .v small { font-size: 12px; font-weight: 600; color: var(--muted); }
+.bars { display: flex; flex-direction: column; gap: 10px; }
+.bar-row .top { display: flex; gap: 8px; font-size: 14px; }
+.bar-row .top .grow { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-row .top .v { font-variant-numeric: tabular-nums; color: var(--muted); white-space: nowrap; }
+.bar { height: 8px; border-radius: 4px; background: var(--surface-2); overflow: hidden; margin-top: 4px; }
+.bar i { display: block; height: 100%; background: var(--gold); border-radius: 4px; }
+.copy { padding: 10px 0; border-bottom: 1px dashed var(--line); display: flex; gap: 10px; align-items: flex-start; }
+.copy:last-child { border-bottom: 0; }
+.kv { display: grid; grid-template-columns: 88px 1fr; gap: 4px 10px; font-size: 14px; }
+.kv .k { color: var(--muted); }
+.greet { margin: 2px 2px 12px; font-size: 15px; color: var(--muted); }
+.greet b { color: var(--text); }
+
+/* onboarding */
+.onb { text-align: center; padding: 8px 4px 4px; }
+.onb .ill { width: 96px; height: 96px; border-radius: 28px; background: var(--gold-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; margin: 8px auto 14px; overflow: hidden; }
+.onb .ill svg { width: 52px; height: 52px; }
+.onb .ill img { width: 100%; height: 100%; }
+.onb h3 { font-size: 20px; margin-bottom: 8px; }
+.onb p { color: var(--muted); margin: 0 0 6px; text-align: left; }
+.dots { display: flex; justify-content: center; gap: 6px; margin: 16px 0 4px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); }
+.dots i.on { background: var(--accent); width: 20px; border-radius: 4px; }
+
+.check { width: 26px; height: 26px; border-radius: 8px; border: 2px solid var(--line); background: transparent; flex: none; display: inline-flex; align-items: center; justify-content: center; color: transparent; padding: 0; }
+.check.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.check svg { width: 16px; height: 16px; }
+.row > svg, .card > svg { width: 22px; height: 22px; flex: none; color: var(--accent); }
+
+/* photos */
+.thumb { width: 48px; height: 48px; border-radius: 10px; flex: none; overflow: hidden; background: var(--surface-2); display: flex; align-items: center; justify-content: center; color: var(--muted); font-weight: 700; font-size: 17px; position: relative; }
+.thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.thumb.lg { width: 64px; height: 64px; border-radius: 12px; }
+.thumb svg { width: 22px; height: 22px; }
+.photo-strip { display: flex; gap: 8px; overflow-x: auto; padding: 2px 0; -webkit-overflow-scrolling: touch; }
+.ph { position: relative; width: 76px; height: 76px; border-radius: 12px; border: 2px solid transparent; padding: 0; overflow: hidden; flex: none; background: var(--surface-2); }
+.ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.ph.main { border-color: var(--gold); }
+.ph .badge { position: absolute; left: 4px; bottom: 4px; background: var(--gold); color: var(--gold-ink); font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 6px; }
+.ph.empty { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 14px; height: 64px; border: 1.5px dashed var(--line); background: transparent; }
+.ph.empty svg { width: 22px; height: 22px; }
+.hero-photo { border-radius: var(--radius); overflow: hidden; margin-bottom: 12px; background: var(--surface-2); aspect-ratio: 4 / 3; max-height: 300px; width: 100%; box-shadow: var(--shadow); }
+.hero-photo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.ai-card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); padding: 12px; margin-bottom: 10px; transition: opacity .15s; }
+.ai-card.off { opacity: .55; }
+.spin { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--accent-soft); border-top-color: var(--accent); animation: spin 1s linear infinite; flex: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
+ul.cl { margin: 0; padding-left: 20px; }
+ul.cl li { margin: 4px 0; }
+.src-list a { display: block; font-size: 13px; padding: 4px 0; word-break: break-all; }
+</style>
+</head>
+<body>
+<header class="topbar" id="top"></header>
+<main id="view"></main>
+<nav class="tabbar" aria-label="主選單"></nav>
+<div id="overlays"></div>
+<div id="toast" role="status" aria-live="polite"></div>
+<noscript>請開啟 JavaScript 才能使用。</noscript>
+<script>
+'use strict';
+/* =========================================================
+   Toyseum — 玩具收藏館（單機離線版）
+   資料只存在這支手機的瀏覽器（IndexedDB）
+   ========================================================= */
+const APP_VERSION = '1.0.0';
+const APP_ID = 'toyseum';
+
+/* ---------- icons ---------- */
+const ICONS = {
+  home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/>',
+  museum: '<path d="M3 9 12 4l9 5"/><path d="M4 9h16"/><path d="M6 10v7M10 10v7M14 10v7M18 10v7"/><path d="M3 20h18M4 17h16"/>',
+  box: '<path d="M21 8 12 3 3 8v8l9 5 9-5V8Z"/><path d="m3 8 9 5 9-5"/><path d="M12 13v8"/>',
+  scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3"/><path d="M16 4h3a1 1 0 0 1 1 1v3"/><path d="M20 16v3a1 1 0 0 1-1 1h-3"/><path d="M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M7 9v6M10 9v6M13 9v6M17 9v6"/>',
+  star: '<path d="m12 3 2.7 5.6 6.1.8-4.5 4.2 1.1 6.1L12 16.8l-5.4 2.9 1.1-6.1-4.5-4.2 6.1-.8L12 3Z"/>',
+  gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1Z"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  minus: '<path d="M5 12h14"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  chev: '<path d="m9 6 6 6-6 6"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  in: '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 17v3h16v-3"/>',
+  camera: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13.5" r="3.5"/>',
+  image: '<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 9"/>',
+  images: '<rect x="6" y="3" width="15" height="13" rx="2"/><path d="M3 7v12a2 2 0 0 0 2 2h12"/><circle cx="11" cy="8" r="1.6"/><path d="m21 13-4-4-7 7"/>',
+  flash: '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8Z"/>',
+  keyboard: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
+  edit: '<path d="M4 20h4L19 9l-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>',
+  trash: '<path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/>',
+  up: '<path d="m6 15 6-6 6 6"/>',
+  down: '<path d="m6 9 6 6 6-6"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  alert: '<path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17h.01"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  truck: '<path d="M3 6h11v10H3z"/><path d="M14 9h4l3 3v4h-7"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/>',
+  backup: '<path d="M7 18a5 5 0 0 1-.6-9.96A6 6 0 0 1 18 9a4 4 0 0 1 0 9"/><path d="M12 12v8M9 15l3-3 3 3"/>',
+  restore: '<path d="M7 18a5 5 0 0 1-.6-9.96A6 6 0 0 1 18 9a4 4 0 0 1 0 9"/><path d="M12 20v-8M9 17l3 3 3-3"/>',
+  tag: '<path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9-9-9Z"/><circle cx="8" cy="8" r="1.5"/>',
+  pin: '<path d="M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/>',
+  help: '<circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6M12 17h.01"/>',
+  shield: '<path d="M12 3 4 6v6c0 4.5 3.4 8.3 8 9 4.6-.7 8-4.5 8-9V6l-8-3Z"/>',
+  chart: '<path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/>',
+  barcode: '<path d="M4 5v14M7 5v14M11 5v14M14 5v14M18 5v14M20 5v14"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+  sparkle: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/>',
+  eye: '<path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/>',
+  eyeoff: '<path d="M3 3l18 18"/><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3.1 3.9M6.6 6.6C3.9 8.3 2 12 2 12s3.6 7 10 7a9.7 9.7 0 0 0 4.4-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+  filter: '<path d="M3 5h18l-7 8v6l-4-2v-4L3 5Z"/>',
+  sort: '<path d="M7 4v16M3 8l4-4 4 4M17 20V4M13 16l4 4 4-4"/>',
+  inbox: '<path d="M3 13h5l2 3h4l2-3h5"/><path d="M5 5h14l2 8v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6l2-8Z"/>',
+  layers: '<path d="m12 3 9 5-9 5-9-5 9-5Z"/><path d="m3 13 9 5 9-5"/>',
+  heart: '<path d="M12 20s-7-4.4-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.6-9 9-9 9Z"/>',
+  link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3Z"/>',
+  copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
+};
+const ic = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
+
+/* ---------- helpers ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const pad = n => String(n).padStart(2, '0');
+const pad4 = n => String(n).padStart(4, '0');
+const toISO = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const todayISO = () => toISO(new Date());
+const parseISO = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+function isoParts(s) { const [y, m, d] = s.split('-').map(Number); return [y, m - 1, d]; }
+const daysBetween = (a, b) => Math.round((Date.UTC(...isoParts(b)) - Date.UTC(...isoParts(a))) / 86400000);
+const fmtDate = iso => { if (!iso) return ''; const [y, m, d] = iso.split('-'); return `${y}/${+m}/${+d}`; };
+const fmtDateShort = iso => { if (!iso) return ''; const [y, m, d] = iso.split('-'); return (y == new Date().getFullYear() ? '' : `${y}/`) + `${+m}/${+d}`; };
+const numOrNull = v => { v = String(v ?? '').replace(/[,\s]/g, ''); if (v === '') return null; const n = +v; return isFinite(n) && n >= 0 ? Math.round(n) : null; };
+const fmtNum = n => Math.round(n).toLocaleString('en-US');
+function money(n, { force = false } = {}) {
+  if (n == null || n === '') return '';
+  if (S?.settings.guest && !force) return 'NT$ •••';
+  return `NT$ ${fmtNum(n)}`;
+}
+function relDay(n) {
+  if (n === 0) return '今天';
+  if (n === 1) return '明天';
+  if (n === -1) return '昨天';
+  if (n < 0) return `${-n} 天前`;
+  if (n < 60) return `${n} 天後`;
+  return `${Math.round(n / 30)} 個月後`;
+}
+function moveIn(arr, i, d) { const j = i + d; if (j < 0 || j >= arr.length) return; [arr[i], arr[j]] = [arr[j], arr[i]]; }
+function normName(s) { return String(s || '').toLowerCase().normalize('NFKC').replace(/[\s\-_.,，、。:：!！?？()（）\[\]【】「」『』'"/・·]+/g, ''); }
+function similar(a, b) {
+  a = normName(a); b = normName(b);
+  if (!a || !b) return 0;
+  if (a === b) return 1;
+  if (a.length >= 3 && b.length >= 3 && (a.includes(b) || b.includes(a))) return .85;
+  const grams = s => { const m = new Map(); for (let i = 0; i < s.length - 1; i++) { const g = s.slice(i, i + 2); m.set(g, (m.get(g) || 0) + 1); } return m; };
+  const A = grams(a), B = grams(b); let inter = 0, tot = 0;
+  for (const [g, n] of A) { inter += Math.min(n, B.get(g) || 0); tot += n; }
+  for (const n of B.values()) tot += n;
+  return tot ? 2 * inter / tot : 0;
+}
+
+/* ---------- storage ---------- */
+const IDB = {
+  db: null,
+  open() {
+    if (this.db) return Promise.resolve(this.db);
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('toyseum', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
+      r.onsuccess = () => { this.db = r.result; res(this.db); };
+      r.onerror = () => rej(r.error);
+    });
+  },
+  async get(k) {
+    const db = await this.open();
+    return new Promise((res, rej) => { const t = db.transaction('kv').objectStore('kv').get(k); t.onsuccess = () => res(t.result); t.onerror = () => rej(t.error); });
+  },
+  async set(k, v) {
+    const db = await this.open();
+    return new Promise((res, rej) => { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); });
+  },
+  async del(k) {
+    const db = await this.open();
+    return new Promise((res, rej) => { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').delete(k); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); });
+  },
+  async keys() {
+    const db = await this.open();
+    return new Promise((res, rej) => { const t = db.transaction('kv').objectStore('kv').getAllKeys(); t.onsuccess = () => res(t.result); t.onerror = () => rej(t.error); });
+  },
+};
+const Photos = {
+  cache: new Map(),
+  async get(id) {
+    if (!id) return null;
+    if (this.cache.has(id)) return this.cache.get(id);
+    const v = await IDB.get('photo:' + id).catch(() => null);
+    if (v) this.cache.set(id, v);
+    return v || null;
+  },
+  async put(id, data) { await IDB.set('photo:' + id, data); this.cache.set(id, data); },
+  async del(id) { await IDB.del('photo:' + id).catch(() => {}); this.cache.delete(id); },
+  async all() {
+    const out = {};
+    for (const k of await IDB.keys()) if (String(k).startsWith('photo:')) out[k.slice(6)] = await IDB.get(k);
+    return out;
+  },
+  async clear() { for (const k of await IDB.keys()) if (/^(photo|src):/.test(String(k))) await IDB.del(k); this.cache.clear(); },
+};
+// 等待 AI 辨識的原始照片（較高解析度），辨識完就刪除
+const SrcImgs = {
+  put: (id, data) => IDB.set('src:' + id, data),
+  get: id => IDB.get('src:' + id).catch(() => null),
+  del: id => IDB.del('src:' + id).catch(() => {}),
+};
+
+const W_OTH = 'w_oth';
+function defaultState() {
+  const li = names => names.map(name => ({ id: uid(), name }));
+  return {
+    schema: 1,
+    createdAt: Date.now(),
+    settings: {
+      lexicon: 'museum',
+      guest: false,
+      backupDays: 14,
+      lastBackupAt: null,
+      onboarded: false,
+      seenVersion: null,
+      persistAsked: false,
+    },
+    works: [{ id: W_OTH, zh: '其他', en: 'Other', code: 'OTH', lastNo: 0, system: true, createdAt: Date.now() }],
+    series: [],
+    types: li(['公仔', '盒玩', '扭蛋', '盲盒', '模型', '絨毛', '卡牌', '其他']),
+    conditions: li(['全新', '近全新', '良好', '有瑕疵']),
+    channels: li(['實體店', '網購', '展場', '代購', '二手']),
+    places: [{ id: uid(), name: '展示櫃', kind: 'display' }, { id: uid(), name: '收納箱', kind: 'storage' }],
+    items: [],
+    wants: [],
+    drafts: [],
+  };
+}
+
+let S = null;
+let saving = Promise.resolve();
+function save() {
+  saving = saving.then(() => IDB.set('state', S)).catch(err => { console.error(err); toast('儲存失敗，請確認手機空間'); });
+  return saving;
+}
+
+/* ---------- 用字（博物館／一般） ---------- */
+const LEX = {
+  home: ['大廳', '首頁'],
+  items: ['館藏', '收藏'],
+  wants: ['徵集清單', '願望清單'],
+  wantsShort: ['徵集', '願望'],
+  stats: ['館務年報', '統計'],
+  settings: ['館務室', '設定'],
+  add: ['登錄入館', '新增收藏'],
+  addCopy: ['增加館藏', '再買一件'],
+  remove: ['移出館藏', '刪除'],
+  display: ['展區', '展示'],
+  storage: ['庫房', '收納'],
+  place: ['展區／庫房', '存放位置'],
+  condition: ['保存狀態', '品相'],
+  sealed: ['原封', '未拆'],
+  openedBox: ['已開封（有盒）', '已拆（有盒）'],
+  openedNoBox: ['已開封（無盒）', '已拆（無盒）'],
+  sealState: ['封存狀態', '拆盒'],
+  transit: ['運送中', '預購中'],
+  guide: ['導覽', '使用說明'],
+  news: ['館訊', '更新內容'],
+  backup: ['典藏備份', '備份'],
+  no: ['典藏編號', '編號'],
+  guest: ['參觀模式', '隱藏金額'],
+  drafts: ['待整理', '待整理'],
+  piece: ['件', '件'],
+  kind: ['款', '款'],
+};
+const L = k => (LEX[k] || [k, k])[S?.settings.lexicon === 'plain' ? 1 : 0];
+const SEAL = () => ({ sealed: L('sealed'), box: L('openedBox'), nobox: L('openedNoBox') });
+
+/* ---------- lookups ---------- */
+const byId = (arr, id) => arr.find(x => x.id === id);
+const workById = id => byId(S.works, id) || byId(S.works, W_OTH);
+const seriesById = id => byId(S.series, id);
+const itemById = id => byId(S.items, id);
+const wantById = id => byId(S.wants, id);
+const typeName = id => byId(S.types, id)?.name || '';
+const condName = id => byId(S.conditions, id)?.name || '';
+const chanName = id => byId(S.channels, id)?.name || '';
+const placeOf = id => byId(S.places, id);
+const placeLabel = id => { const p = placeOf(id); return p ? `${p.kind === 'storage' ? L('storage') : L('display')}・${p.name}` : '未指定'; };
+
+const itemCode = it => `${workById(it.workId).code}-${pad4(it.no)}`;
+const copyCode = (it, c) => `${itemCode(it)}-${c.n}`;
+const itemSpend = it => it.copies.reduce((s, c) => s + (c.price || 0), 0);
+const itemValue = it => it.estValue != null ? it.estValue * it.copies.length : itemSpend(it);
+const itemsByBarcode = code => S.items.filter(it => (it.barcodes || []).includes(code));
+const wantsByBarcode = code => S.wants.filter(w => w.status !== 'arrived' && (w.barcodes || []).includes(code));
+function seriesLabel(it) {
+  const w = workById(it.workId), s = seriesById(it.seriesId);
+  return [w.id === W_OTH ? '' : w.zh, s?.name, it.character].filter(Boolean).join('・');
+}
+function lastCopyAt(it) { return Math.max(it.createdAt || 0, ...it.copies.map(c => c.createdAt || 0)); }
+
+/* ---------- 典藏編號 ---------- */
+function gapsIn(used, last) {
+  const set = new Set(used); const out = [];
+  for (let i = 1; i <= last; i++) if (!set.has(i)) out.push(i);
+  return out;
+}
+const itemGaps = w => gapsIn(S.items.filter(it => it.workId === w.id).map(it => it.no), w.lastNo || 0);
+const copyGaps = it => gapsIn(it.copies.map(c => c.n), it.lastN || 0);
+function stripAccents(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+// 代號規則：一個單字取前 3 個字母；兩個以上單字取第一字前 2 字母＋第二字首字母
+function codeCandidates(en) {
+  const words = stripAccents(en).toUpperCase().replace(/[^A-Z0-9 ]+/g, ' ').trim().split(/\s+/).filter(Boolean).map(w => w.replace(/[^A-Z]/g, '')).filter(Boolean);
+  if (!words.length) return [];
+  const out = [];
+  const add = c => { if (c.length === 3 && !out.includes(c)) out.push(c); };
+  const w0 = words[0];
+  if (words.length === 1) {
+    add(w0.slice(0, 3));
+    for (let k = 2; k < w0.length; k++) add(w0[0] + w0[1] + w0[k]);
+    const cons = w0.slice(1).replace(/[AEIOU]/g, '');
+    for (let j = 0; j < cons.length; j++) for (let k = j + 1; k < cons.length; k++) add(w0[0] + cons[j] + cons[k]);
+    for (let j = 1; j < w0.length; j++) for (let k = j + 1; k < w0.length; k++) add(w0[0] + w0[j] + w0[k]);
+  } else {
+    const w1 = words[1];
+    add((w0.slice(0, 2) + w1[0]));
+    if (words[2]) add(w0[0] + w1[0] + words[2][0]);
+    for (let k = 1; k < w1.length; k++) add(w0[0] + w1[0] + w1[k]);
+    for (let k = 2; k < w0.length; k++) add(w0[0] + w0[1] + w0[k]);
+    for (let k = 1; k < w1.length; k++) add(w0[0] + w0[1] + w1[k]);
+  }
+  return out;
+}
+const codeTaken = (code, exceptId) => S.works.some(w => w.code === code && w.id !== exceptId);
+function suggestCode(en) { return codeCandidates(en).find(c => !codeTaken(c)) || ''; }
+const validCode = c => /^[A-Z]{3}$/.test(c);
+
+/* ---------- undo ---------- */
+let undoSnap = null;
+function snapshot() { undoSnap = JSON.stringify({ items: S.items, wants: S.wants, works: S.works, series: S.series }); }
+function undo() {
+  if (!undoSnap) return;
+  const u = JSON.parse(undoSnap); undoSnap = null;
+  Object.assign(S, u); commit(); toast('已復原');
+}
+function commit() { save(); renderMain(); refreshOverlays(); }
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg, action) {
+  const el = $('#toast');
+  el.innerHTML = `<span>${esc(msg)}</span>` + (action ? `<button>${esc(action.label)}</button>` : '');
+  if (action) $('button', el).onclick = () => { el.classList.remove('show'); action.fn(); };
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), action ? 5000 : 2600);
+}
+
+/* ---------- overlay stack (Android 返回鍵可關閉) ---------- */
+const overlays = [];
+const backWaiters = [];
+function pushOverlay(el, opts = {}) {
+  $('#overlays').appendChild(el);
+  overlays.push({ el, ...opts });
+  history.pushState({ ov: overlays.length }, '');
+  requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('open')));
+}
+function popOverlay() {
+  const o = overlays.pop();
+  if (!o) return;
+  try { o.onClose && o.onClose(); } catch (e) { console.error(e); }
+  o.el.classList.remove('open');
+  setTimeout(() => o.el.remove(), 240);
+}
+window.addEventListener('popstate', () => {
+  if (overlays.length) popOverlay();
+  const w = backWaiters.shift(); w && w();
+});
+function closeTop() {
+  return new Promise(res => {
+    if (!overlays.length) return res();
+    backWaiters.push(res);
+    history.back();
+  });
+}
+async function closeAll() { while (overlays.length) await closeTop(); }
+function refreshOverlays() { overlays.forEach(o => { try { o.refresh && o.refresh(); } catch (e) { console.error(e); } }); }
+const isOpen = ctx => overlays.some(o => o.el === ctx.el);
+
+function sheet({ title, body, foot, full = false, onMount, refresh, onClose }) {
+  const el = document.createElement('div');
+  el.className = 'overlay';
+  el.innerHTML = `<div class="backdrop"></div>
+    <div class="sheet ${full ? 'full' : ''}" role="dialog" aria-label="${esc(title)}">
+      <div class="sheet-grip"></div>
+      <div class="sheet-head"><h2></h2><button class="icon-btn ghost" data-close aria-label="關閉">${ic('x')}</button></div>
+      <div class="sheet-body"></div>
+      <div class="sheet-foot" hidden></div>
+    </div>`;
+  const ctx = {
+    el,
+    setTitle(t) { $('.sheet-head h2', el).textContent = t; },
+    setBody(h) { $('.sheet-body', el).innerHTML = h; },
+    setFoot(h) { const f = $('.sheet-foot', el); f.hidden = !h; f.innerHTML = h || ''; },
+    $: s => $(s, el), $$: s => $$(s, el),
+  };
+  ctx.setTitle(title);
+  ctx.setBody(body || '');
+  ctx.setFoot(foot || '');
+  $('.backdrop', el).onclick = () => closeTop();
+  $('[data-close]', el).onclick = () => closeTop();
+  pushOverlay(el, { refresh: refresh ? () => refresh(ctx) : null, onClose });
+  onMount && onMount(ctx);
+  return ctx;
+}
+
+function confirmDialog(msg, { ok = '確定', danger = false, cancel = '取消', title = '請確認' } = {}) {
+  return new Promise(res => {
+    let result = false;
+    sheet({
+      title,
+      body: `<p style="margin:4px 0 8px">${msg}</p>`,
+      foot: `<button class="btn" data-no>${esc(cancel)}</button><button class="btn ${danger ? 'danger' : 'primary'}" data-yes>${esc(ok)}</button>`,
+      onMount: ctx => {
+        ctx.$('[data-no]').onclick = () => closeTop();
+        ctx.$('[data-yes]').onclick = () => { result = true; closeTop(); };
+      },
+      onClose: () => res(result),
+    });
+  });
+}
+// 二次確認：兩個步驟都按確定才算數
+async function doubleConfirm(msg1, msg2, { ok = '確定修改' } = {}) {
+  if (!await confirmDialog(msg1, { ok: '下一步' })) return false;
+  return confirmDialog(msg2, { ok, danger: true, title: '再次確認' });
+}
+function promptDialog(title, { value = '', placeholder = '', type = 'text', label = '', ok = '確定', hint = '', inputmode = '', upper = false, maxlength = '' } = {}) {
+  return new Promise(res => {
+    let result = null;
+    sheet({
+      title,
+      body: `<div class="field">${label ? `<label>${esc(label)}</label>` : ''}<input class="input" type="${type}" value="${esc(value)}" placeholder="${esc(placeholder)}" ${inputmode ? `inputmode="${inputmode}"` : ''} ${maxlength ? `maxlength="${maxlength}"` : ''} ${upper ? 'autocapitalize="characters" style="text-transform:uppercase;letter-spacing:.1em;font-weight:700"' : ''}>${hint ? `<div class="hint">${hint}</div>` : ''}</div>`,
+      foot: `<button class="btn" data-no>取消</button><button class="btn primary" data-yes>${esc(ok)}</button>`,
+      onMount: ctx => {
+        const inp = ctx.$('input');
+        setTimeout(() => inp.focus(), 250);
+        const done = () => { result = upper ? inp.value.toUpperCase() : inp.value; closeTop(); };
+        inp.onkeydown = e => { if (e.key === 'Enter' && !e.isComposing) done(); };
+        ctx.$('[data-no]').onclick = () => closeTop();
+        ctx.$('[data-yes]').onclick = done;
+      },
+      onClose: () => res(result),
+    });
+  });
+}
+// 選項清單（回傳選到的 value，取消回傳 null）
+function choiceDialog(title, msg, options) {
+  return new Promise(res => {
+    let result = null;
+    sheet({
+      title,
+      body: `${msg ? `<p style="margin:4px 0 12px">${msg}</p>` : ''}${options.map((o, i) => `<button class="btn ${o.primary ? 'primary' : ''} block" style="margin-bottom:8px;justify-content:flex-start;text-align:left" data-i="${i}">${o.icon ? ic(o.icon) : ''}<span class="grow">${o.label}${o.sub ? `<div class="small" style="font-weight:500;opacity:.8">${o.sub}</div>` : ''}</span></button>`).join('')}`,
+      onMount: ctx => { ctx.$$('[data-i]').forEach(b => b.onclick = () => { result = options[+b.dataset.i].value; closeTop(); }); },
+      onClose: () => res(result),
+    });
+  });
+}
+
+/* =========================================================
+   Main views
+   ========================================================= */
+let tab = 'home';
+const UI = { mode: 'work', q: '', sort: 'recent', f: { workId: '', typeId: '', placeId: '', seal: '' }, wq: '' };
+const closedGroups = new Set();
+
+function renderTabbar() {
+  const t = (id, icon, label) => `<button data-tab="${id}" class="${tab === id ? 'active' : ''}">${ic(icon)}${esc(label)}</button>`;
+  $('.tabbar').innerHTML = t('home', 'museum', L('home')) + t('items', 'layers', L('items')) +
+    `<button data-add aria-label="${esc(L('add'))}"><span class="fab">${ic('plus')}</span></button>` +
+    t('wants', 'heart', L('wantsShort')) + t('set', 'gear', L('settings'));
+  $$('.tabbar [data-tab]').forEach(b => b.onclick = async () => { await closeAll(); tab = b.dataset.tab; window.scrollTo(0, 0); renderMain(); });
+  $('.tabbar [data-add]').onclick = () => openAddChooser();
+}
+function renderMain() {
+  renderTabbar();
+  const v = $('#view');
+  if (tab === 'home') renderHome(v);
+  else if (tab === 'items') renderItems(v);
+  else if (tab === 'wants') renderWants(v);
+  else if (tab === 'set') renderSettings(v);
+}
+function setTop(title, sub = '', right = '') {
+  $('#top').innerHTML = `<div class="grow"><h1>${esc(title)}</h1>${sub ? `<div class="sub">${esc(sub)}</div>` : ''}</div><div class="acts">${right}</div>`;
+}
+function guestBtn() { return `<button class="icon-btn ${S.settings.guest ? 'on' : ''}" data-guest aria-label="${esc(L('guest'))}">${ic(S.settings.guest ? 'eyeoff' : 'eye')}</button>`; }
+function bindGuestBtn() {
+  const b = $('#top [data-guest]');
+  if (b) b.onclick = () => { S.settings.guest = !S.settings.guest; commit(); toast(S.settings.guest ? `${L('guest')}：已隱藏所有金額` : '已顯示金額'); };
+}
+
+/* ---------- photo thumbs ---------- */
+function mainThumb(p) { const ph = (p.photos || []).find(x => x.id === p.mainPhoto) || (p.photos || [])[0]; return ph ? ph.thumb : null; }
+function thumbHTML(p, cls = '') {
+  const t = mainThumb(p);
+  return `<div class="thumb ${cls}">${t ? `<img alt="" src="${t}" loading="lazy">` : `<span>${esc((p.name || '?').trim().slice(0, 1))}</span>`}</div>`;
+}
+
+/* ---------- item row ---------- */
+function itemRow(it, { copies = null, extra = '' } = {}) {
+  const cs = copies || it.copies;
+  const spend = cs.reduce((s, c) => s + (c.price || 0), 0);
+  const sl = seriesLabel(it);
+  return `<div class="item tap" data-open="${it.id}">
+    ${thumbHTML(it)}
+    <div class="main">
+      <div class="name">${esc(it.name)}</div>
+      <div class="meta"><span class="code">${esc(itemCode(it))}</span>${sl ? `<span class="ellipsis" style="max-width:100%">${esc(sl)}</span>` : ''}${extra}</div>
+    </div>
+    <div class="qty">×${cs.length}${spend ? `<small>${esc(money(spend))}</small>` : ''}</div>
+  </div>`;
+}
+function bindRows(root) { $$('[data-open]', root).forEach(el => el.onclick = () => openItem(el.dataset.open)); }
+
+/* ---------- home ---------- */
+function backupDue() {
+  const last = S.settings.lastBackupAt;
+  if (!S.items.length) return false;
+  if (!last) return (Date.now() - (S.createdAt || 0)) > 2 * 86400000 || S.items.length >= 10;
+  return Date.now() - last > S.settings.backupDays * 86400000;
+}
+const TRANSIT = ['preordered', 'deposit', 'balance'];
+const WANT_STATUS = { want: '想要', preordered: '已預購', deposit: '已付訂金', balance: '待付尾款', arrived: '已到貨' };
+function wantDue(w) {
+  const d = w.eta || w.releaseDate;
+  if (!d || !TRANSIT.includes(w.status)) return null;
+  const n = daysBetween(todayISO(), d);
+  return { n, date: d, level: n < 0 ? 'late' : n <= 7 ? 'soon' : 'ok' };
+}
+function wantChip(w) {
+  const due = wantDue(w);
+  let h = `<span class="chip ${w.status === 'arrived' ? 'ok' : TRANSIT.includes(w.status) ? 'info' : ''}">${WANT_STATUS[w.status] || ''}</span>`;
+  if (due) h += due.level === 'late' ? `<span class="chip danger">預計 ${fmtDateShort(due.date)}・已過 ${-due.n} 天</span>` : due.level === 'soon' ? `<span class="chip warn">快到貨・${relDay(due.n)}</span>` : `<span class="chip">預計 ${fmtDateShort(due.date)}</span>`;
+  return h;
+}
+function wantRow(w) {
+  const wk = w.workId ? workById(w.workId) : null;
+  const price = w.price ?? w.budget;
+  return `<div class="item tap" data-want="${w.id}">${thumbHTML(w)}
+    <div class="main"><div class="name">${esc(w.name)}</div>
+      <div class="meta">${wantChip(w)}${wk && wk.id !== W_OTH ? `<span>${esc(wk.zh)}</span>` : ''}</div></div>
+    <div class="qty">${price != null ? `<small>${w.price != null ? '' : '預算 '}${esc(money(price))}</small>` : ''}</div></div>`;
+}
+
+function renderHome(v) {
+  const d = new Date();
+  setTop('Toyseum', `${d.getMonth() + 1} 月 ${d.getDate()} 日 星期${'日一二三四五六'[d.getDay()]}`, guestBtn());
+  bindGuestBtn();
+  const nItems = S.items.length, nCopies = S.items.reduce((s, it) => s + it.copies.length, 0);
+  const spend = S.items.reduce((s, it) => s + itemSpend(it), 0);
+  const value = S.items.reduce((s, it) => s + itemValue(it), 0);
+  let h = S.settings.lexicon === 'plain' ? '' : `<div class="greet"><b>館長</b>，歡迎回來。</div>`;
+  if (backupDue()) {
+    const last = S.settings.lastBackupAt;
+    h += `<div class="banner">${ic('backup')}<div class="grow"><b>該備份了</b><div class="small muted">${last ? `上次備份是 ${Math.floor((Date.now() - last) / 86400000)} 天前` : '你還沒有備份過資料'}，資料只存在這支手機裡。</div></div><button class="btn sm primary" data-backup>備份</button></div>`;
+  }
+  if (S.drafts.length) h += `<div class="banner gold">${ic('inbox')}<div class="grow"><b>${L('drafts')} ${S.drafts.length} 筆</b><div class="small muted">匯入的照片還沒整理完</div></div><button class="btn sm primary" data-drafts>整理</button></div>`;
+  h += `<div class="big-actions">
+      <button class="btn primary" data-scan>${ic('scan')}掃條碼查詢</button>
+      <button class="btn gold" data-add>${ic('plus')}${esc(L('add'))}</button>
+    </div>
+    <div class="hint" style="margin:0 2px 4px">逛店時掃一下，馬上知道是不是已經有了。</div>`;
+  h += `<div class="stats" style="margin-top:12px">
+      <div class="stat"><div class="k">${L('items')}</div><div class="v">${nItems} <small>款</small> ${nCopies} <small>件</small></div></div>
+      <div class="stat"><div class="k">總花費</div><div class="v">${spend ? esc(money(spend)) : '—'}</div></div>
+    </div>
+    <button class="setting-row card-like" data-stats style="margin-top:8px">${ic('chart', 'lead')}<span class="grow"><div style="font-weight:600">${L('stats')}</div><div class="small muted">估計總值 ${value ? esc(money(value)) : '—'}・依作品、類型、年度、管道</div></span>${ic('chev', 'chev')}</button>`;
+
+  const transit = S.wants.filter(w => TRANSIT.includes(w.status) || w.status === 'arrived')
+    .sort((a, b) => (a.status === 'arrived' ? -1 : 0) - (b.status === 'arrived' ? -1 : 0) || (a.eta || a.releaseDate || '9999').localeCompare(b.eta || b.releaseDate || '9999'));
+  if (transit.length) {
+    const soon = transit.filter(w => { const x = wantDue(w); return w.status === 'arrived' || (x && x.level !== 'ok'); }).length;
+    h += `<div class="section-title"><span>${L('transit')}</span><span class="count">${transit.length} 項${soon ? `・${soon} 項要注意` : ''}</span></div><div class="list">${transit.slice(0, 6).map(wantRow).join('')}</div>`;
+    if (transit.length > 6) h += `<button class="btn sm ghost block" data-gowants>查看全部</button>`;
+  }
+  const recent = [...S.items].sort((a, b) => lastCopyAt(b) - lastCopyAt(a)).slice(0, 5);
+  if (recent.length) h += `<div class="section-title"><span>最近${S.settings.lexicon === 'plain' ? '新增' : '登錄'}</span></div><div class="list">${recent.map(it => itemRow(it)).join('')}</div>`;
+  if (!S.items.length) h += `<div class="card empty" style="margin-top:12px">${ic('museum')}<div><b>${S.settings.lexicon === 'plain' ? '還沒有收藏' : '館內還沒有展品'}</b></div><div class="small">按下方金色「＋」${esc(L('add'))}，可以拍照讓 AI 辨識，或從相簿匯入舊照片。</div></div>`;
+  v.innerHTML = h;
+  bindRows(v);
+  $$('[data-want]', v).forEach(el => el.onclick = () => openWant(el.dataset.want));
+  $('[data-scan]', v).onclick = () => openShopScan();
+  $('[data-add]', v).onclick = () => openAddChooser();
+  $('[data-stats]', v).onclick = () => openStats();
+  const bb = $('[data-backup]', v); if (bb) bb.onclick = () => openBackup();
+  const db = $('[data-drafts]', v); if (db) db.onclick = () => openDrafts();
+  const gw = $('[data-gowants]', v); if (gw) gw.onclick = () => { tab = 'wants'; renderMain(); };
+}
+
+/* ---------- items (館藏) ---------- */
+function itemMatches(it, q) {
+  if (!q) return true;
+  const w = workById(it.workId), s = seriesById(it.seriesId);
+  const hay = [it.name, w.zh, w.en, w.code, s?.name, it.character, it.brand, it.edition, typeName(it.typeId), itemCode(it), ...(it.barcodes || []), ...(it.tags || []), it.note]
+    .filter(Boolean).join(' ').toLowerCase();
+  return q.toLowerCase().split(/\s+/).filter(Boolean).every(t => hay.includes(t) || normName(hay).includes(normName(t)));
+}
+function copyPass(c) {
+  const f = UI.f;
+  if (f.placeId && (f.placeId === '_none' ? !!placeOf(c.placeId) : c.placeId !== f.placeId)) return false;
+  if (f.seal && c.seal !== f.seal) return false;
+  return true;
+}
+function filteredItems() {
+  const f = UI.f;
+  return S.items.filter(it => itemMatches(it, UI.q.trim()) && (!f.workId || it.workId === f.workId) && (!f.typeId || it.typeId === f.typeId) && it.copies.some(copyPass));
+}
+const SORTS = { recent: '最近登錄', code: '編號', date: '購買日期', price: '價格', name: '名稱' };
+function sortItems(list) {
+  const firstDate = it => it.copies.map(c => c.date || '').filter(Boolean).sort()[0] || '';
+  const fn = {
+    recent: (a, b) => lastCopyAt(b) - lastCopyAt(a),
+    code: (a, b) => itemCode(a).localeCompare(itemCode(b)),
+    date: (a, b) => (firstDate(b) || '0').localeCompare(firstDate(a) || '0'),
+    price: (a, b) => itemSpend(b) - itemSpend(a),
+    name: (a, b) => a.name.localeCompare(b.name, 'zh-Hant'),
+  }[UI.sort];
+  return [...list].sort(fn);
+}
+function renderItems(v) {
+  setTop(L('items'), `${S.items.length} 款・${S.items.reduce((s, it) => s + it.copies.length, 0)} 件`, `${guestBtn()}<button class="icon-btn" data-new aria-label="${esc(L('add'))}">${ic('plus')}</button>`);
+  bindGuestBtn();
+  $('#top [data-new]').onclick = () => openAddChooser();
+  const nf = Object.values(UI.f).filter(Boolean).length;
+  v.innerHTML = `${S.drafts.length ? `<button class="setting-row card-like" data-drafts style="margin-top:2px">${ic('inbox', 'lead')}<span class="grow"><b>${L('drafts')} ${S.drafts.length} 筆</b><div class="small muted">點進去逐筆確認後${esc(L('add'))}</div></span>${ic('chev', 'chev')}</button>` : ''}
+    <div class="seg" style="margin-top:2px"><button data-mode="work" class="${UI.mode === 'work' ? 'on' : ''}">依作品</button><button data-mode="place" class="${UI.mode === 'place' ? 'on' : ''}">依${S.settings.lexicon === 'plain' ? '位置' : '展區'}</button><button data-mode="all" class="${UI.mode === 'all' ? 'on' : ''}">全部</button></div>
+    <label class="search">${ic('search')}<input type="search" placeholder="搜尋名稱、作品、角色、編號、條碼" value="${esc(UI.q)}" data-q></label>
+    <div class="filterbar"><button data-filter class="${nf ? 'on' : ''}">${ic('filter')}篩選${nf ? ` ${nf}` : ''}</button><button data-sort>${ic('sort')}${SORTS[UI.sort]}</button>${nf ? '<button data-clear>清除篩選</button>' : ''}</div>
+    <div data-res></div>`;
+  $$('[data-mode]', v).forEach(b => b.onclick = () => { UI.mode = b.dataset.mode; $$('[data-mode]', v).forEach(x => x.classList.toggle('on', x === b)); renderItemResults(); });
+  const qi = $('[data-q]', v);
+  qi.addEventListener('input', e => { if (e.isComposing) return; UI.q = qi.value; renderItemResults(); });
+  qi.addEventListener('compositionend', () => { UI.q = qi.value; renderItemResults(); });
+  $('[data-filter]', v).onclick = () => openFilters();
+  $('[data-sort]', v).onclick = async () => {
+    const r = await choiceDialog('排序方式', '', Object.entries(SORTS).map(([value, label]) => ({ value, label: label + (UI.sort === value ? '　✓' : '') })));
+    if (r) { UI.sort = r; renderMain(); }
+  };
+  const cl = $('[data-clear]', v); if (cl) cl.onclick = () => { UI.f = { workId: '', typeId: '', placeId: '', seal: '' }; renderMain(); };
+  const db = $('[data-drafts]', v); if (db) db.onclick = () => openDrafts();
+  renderItemResults();
+}
+function groupHTML(id, name, count, inner) {
+  const open = !closedGroups.has(id);
+  return `<details class="group" data-g="${esc(id)}" ${open ? 'open' : ''}><summary>${ic('chev', 'chev')}<span class="ellipsis">${name}</span><span class="count">${count}</span></summary>${inner}</details>`;
+}
+function renderItemResults() {
+  const r = $('#view [data-res]'); if (!r) return;
+  const list = sortItems(filteredItems());
+  let h = '';
+  if (!S.items.length) {
+    h = `<div class="card empty">${ic('layers')}<div><b>還沒有${L('items')}</b></div><div class="small">按右上角 + ${esc(L('add'))}。</div></div>`;
+  } else if (!list.length) {
+    h = `<div class="empty">找不到符合的${L('items')}</div>`;
+  } else if (UI.mode === 'all') {
+    h = `<div class="list">${list.map(it => itemRow(it, { copies: it.copies.filter(copyPass) })).join('')}</div>`;
+  } else if (UI.mode === 'work') {
+    const groups = S.works.map(w => ({ w, items: list.filter(it => it.workId === w.id) })).filter(g => g.items.length)
+      .sort((a, b) => (a.w.id === W_OTH) - (b.w.id === W_OTH) || a.w.code.localeCompare(b.w.code));
+    h = groups.map(g => groupHTML(g.w.id, `<span class="code" style="margin-right:6px">${esc(g.w.code)}</span>${esc(g.w.zh)}`, `${g.items.length} 款・${g.items.reduce((s, it) => s + it.copies.filter(copyPass).length, 0)} 件`,
+      `<div class="list">${g.items.map(it => itemRow(it, { copies: it.copies.filter(copyPass) })).join('')}</div>`)).join('');
+  } else {
+    const groups = [...S.places.map(p => ({ id: p.id, name: placeLabel(p.id) })), { id: '_none', name: '未指定位置' }].map(p => {
+      const rows = list.map(it => ({ it, cs: it.copies.filter(c => copyPass(c) && (p.id === '_none' ? !placeOf(c.placeId) : c.placeId === p.id)) })).filter(x => x.cs.length);
+      return { ...p, rows };
+    }).filter(g => g.rows.length);
+    h = groups.map(g => groupHTML(g.id, esc(g.name), `${g.rows.length} 款・${g.rows.reduce((s, x) => s + x.cs.length, 0)} 件`,
+      `<div class="list">${g.rows.map(x => itemRow(x.it, { copies: x.cs })).join('')}</div>`)).join('');
+  }
+  r.innerHTML = h;
+  $$('details.group', r).forEach(d => d.ontoggle = () => { d.open ? closedGroups.delete(d.dataset.g) : closedGroups.add(d.dataset.g); });
+  bindRows(r);
+}
+function openFilters() {
+  const f = { ...UI.f };
+  const opt = (arr, sel, lab = x => x.name) => arr.map(x => `<option value="${x.id}" ${x.id === sel ? 'selected' : ''}>${esc(lab(x))}</option>`).join('');
+  sheet({
+    title: '篩選',
+    body: `<div class="field"><label>作品</label><select class="input" data-k="workId"><option value="">全部</option>${opt(S.works, f.workId, w => `${w.code}　${w.zh}`)}</select></div>
+      <div class="field"><label>類型</label><select class="input" data-k="typeId"><option value="">全部</option>${opt(S.types, f.typeId)}</select></div>
+      <div class="field"><label>${L('place')}</label><select class="input" data-k="placeId"><option value="">全部</option>${opt(S.places, f.placeId, p => placeLabel(p.id))}<option value="_none" ${f.placeId === '_none' ? 'selected' : ''}>未指定位置</option></select></div>
+      <div class="field"><label>${L('sealState')}</label><select class="input" data-k="seal"><option value="">全部</option>${Object.entries(SEAL()).map(([k, n]) => `<option value="${k}" ${k === f.seal ? 'selected' : ''}>${esc(n)}</option>`).join('')}</select></div>`,
+    foot: `<button class="btn" data-reset>清除</button><button class="btn primary" data-ok>套用</button>`,
+    onMount: ctx => {
+      ctx.$('[data-reset]').onclick = () => { UI.f = { workId: '', typeId: '', placeId: '', seal: '' }; closeTop(); renderMain(); };
+      ctx.$('[data-ok]').onclick = () => { ctx.$$('[data-k]').forEach(s => { UI.f[s.dataset.k] = s.value; }); closeTop(); renderMain(); };
+    },
+  });
+}
+
+/* ---------- wants (徵集清單) ---------- */
+function renderWants(v) {
+  setTop(L('wants'), `${S.wants.length} 項`, `${guestBtn()}<button class="icon-btn" data-new aria-label="新增">${ic('plus')}</button>`);
+  bindGuestBtn();
+  $('#top [data-new]').onclick = () => openWantForm({});
+  v.innerHTML = `<label class="search" style="margin-top:2px">${ic('search')}<input type="search" placeholder="搜尋${esc(L('wants'))}" value="${esc(UI.wq)}" data-q></label><div data-res></div>`;
+  const qi = $('[data-q]', v);
+  const draw = () => {
+    const q = UI.wq.trim().toLowerCase();
+    const list = S.wants.filter(w => !q || [w.name, workById(w.workId)?.zh, w.character, w.brand, ...(w.barcodes || [])].filter(Boolean).join(' ').toLowerCase().includes(q));
+    const by = s => list.filter(w => s.includes(w.status));
+    const sortDue = arr => arr.sort((a, b) => (a.eta || a.releaseDate || '9999').localeCompare(b.eta || b.releaseDate || '9999'));
+    const sec = (title, arr, note = '') => arr.length ? `<div class="section-title"><span>${title}</span><span class="count">${arr.length} 項</span></div>${note}<div class="list">${arr.map(wantRow).join('')}</div>` : '';
+    let h = sec('已到貨，等待' + L('add'), by(['arrived']), `<div class="hint" style="margin:-4px 2px 8px">點進去按「${esc(L('add'))}」，資料會自動帶入。</div>`);
+    h += sec(L('transit'), sortDue(by(TRANSIT)));
+    h += sec('想要', by(['want']).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)));
+    if (!S.wants.length) h = `<div class="card empty">${ic('heart')}<div><b>${L('wants')}是空的</b></div><div class="small">把想買的玩具、已預購的商品記在這裡，到貨後一鍵${esc(L('add'))}。逛店掃條碼時也會提醒你它在清單上。</div></div>`;
+    else if (!list.length) h = `<div class="empty">找不到符合的項目</div>`;
+    $('[data-res]', v).innerHTML = h;
+    $$('[data-want]', v).forEach(el => el.onclick = () => openWant(el.dataset.want));
+  };
+  qi.addEventListener('input', e => { if (e.isComposing) return; UI.wq = qi.value; draw(); });
+  qi.addEventListener('compositionend', () => { UI.wq = qi.value; draw(); });
+  draw();
+}
+
+/* ---------- stats (館務年報) ---------- */
+function openStats() {
+  const render = ctx => {
+    const copies = S.items.flatMap(it => it.copies.map(c => ({ it, c })));
+    const spend = copies.reduce((s, x) => s + (x.c.price || 0), 0);
+    const value = S.items.reduce((s, it) => s + itemValue(it), 0);
+    const guest = S.settings.guest;
+    const agg = keyFn => {
+      const m = new Map();
+      for (const x of copies) { const k = keyFn(x); const o = m.get(k) || { n: 0, sum: 0, kinds: new Set() }; o.n++; o.sum += x.c.price || 0; o.kinds.add(x.it.id); m.set(k, o); }
+      return [...m.entries()].map(([k, o]) => ({ k, ...o, kinds: o.kinds.size }));
+    };
+    const bars = (rows, label) => {
+      if (!rows.length) return '<div class="small muted">還沒有資料</div>';
+      const max = Math.max(...rows.map(r => guest ? r.n : r.sum || r.n), 1);
+      return `<div class="bars">${rows.map(r => `<div class="bar-row"><div class="top"><span class="grow">${label(r.k)}</span><span class="v">${r.kinds} 款 ${r.n} 件${!guest && r.sum ? `・${esc(money(r.sum))}` : ''}</span></div><div class="bar"><i style="width:${Math.max(2, ((guest ? r.n : r.sum || r.n) / max) * 100)}%"></i></div></div>`).join('')}</div>`;
+    };
+    const byWork = agg(x => x.it.workId).sort((a, b) => b.sum - a.sum || b.n - a.n);
+    const byType = agg(x => x.it.typeId || '').sort((a, b) => b.sum - a.sum || b.n - a.n);
+    const byYear = agg(x => (x.c.date || '').slice(0, 4) || '未填').sort((a, b) => b.k.localeCompare(a.k));
+    const byChan = agg(x => x.c.channelId || '').sort((a, b) => b.sum - a.sum || b.n - a.n);
+    const seal = agg(x => x.c.seal || 'sealed');
+    ctx.setBody(`<div class="stats">
+        <div class="stat"><div class="k">${L('items')}</div><div class="v">${S.items.length} <small>款</small> ${copies.length} <small>件</small></div></div>
+        <div class="stat"><div class="k">總花費</div><div class="v">${spend ? esc(money(spend)) : '—'}</div></div>
+        <div class="stat"><div class="k">估計總值</div><div class="v">${value ? esc(money(value)) : '—'}</div></div>
+        <div class="stat"><div class="k">平均每件（有填價格）</div><div class="v">${copies.length && spend ? esc(money(spend / copies.filter(x => x.c.price).length || 0)) : '—'}</div></div>
+      </div>
+      <div class="hint" style="margin:6px 2px 0">估計總值：有填「目前估價」的用估價計算，沒填的用購買價。${guest ? `目前是${L('guest')}，金額已隱藏。` : ''}</div>
+      <div class="small muted" style="margin:8px 2px 0">${Object.entries(SEAL()).map(([k, n]) => `${n} ${seal.find(r => r.k === k)?.n || 0} 件`).join('・')}</div>
+      <div class="section-title"><span>依作品</span></div><div class="card">${bars(byWork, k => { const w = workById(k); return `<span class="code" style="margin-right:6px">${esc(w.code)}</span>${esc(w.zh)}`; })}</div>
+      <div class="section-title"><span>依年度</span></div><div class="card">${bars(byYear, k => esc(k === '未填' ? '未填購買日期' : `${k} 年`))}</div>
+      <div class="section-title"><span>依類型</span></div><div class="card">${bars(byType, k => esc(typeName(k) || '未分類'))}</div>
+      <div class="section-title"><span>依購買管道</span></div><div class="card">${bars(byChan, k => esc(chanName(k) || '未填'))}</div>`);
+  };
+  sheet({ title: L('stats'), full: true, onMount: render, refresh: render });
+}
+
+/* =========================================================
+   作品、代號、編號
+   ========================================================= */
+function sortedWorks() { return [...S.works].sort((a, b) => (a.id === W_OTH) - (b.id === W_OTH) || a.code.localeCompare(b.code)); }
+
+// 新作品：填中英文名 → 依規則產生代號 → 你決定使用或修改
+function openWorkCreate({ zh = '', en = '' } = {}) {
+  return new Promise(res => {
+    let result = null, aiTried = false;
+    const ctx = sheet({
+      title: '新作品',
+      body: `<div class="field"><label>作品中文名</label><input class="input" data-zh value="${esc(zh)}" placeholder="例如：鋼彈"></div>
+        <div class="field"><label>英文名（用來產生 3 碼代號）</label><input class="input" data-en value="${esc(en)}" placeholder="例如：Gundam" autocapitalize="words" autocomplete="off">
+        <div class="hint" data-st>${aiReady() ? '只知道中文名也可以，按下一步時 AI 會幫你查英文名。' : '不知道英文名可以留空，下一步直接輸入代號。'}</div></div>`,
+      foot: `<button class="btn" data-no>取消</button><button class="btn primary" data-next>下一步</button>`,
+      onMount: c => {
+        setTimeout(() => (zh ? c.$('[data-en]') : c.$('[data-zh]')).focus(), 250);
+        c.$('[data-no]').onclick = () => closeTop();
+        c.$('[data-next]').onclick = async () => {
+          const z = c.$('[data-zh]').value.trim();
+          let e = c.$('[data-en]').value.trim();
+          if (!z) return toast('請輸入作品中文名');
+          const same = S.works.find(w => normName(w.zh) === normName(z));
+          if (same) { result = same; toast(`已經有「${same.zh}」（${same.code}）`); return closeTop(); }
+          if (!e && aiReady() && !aiTried) {
+            aiTried = true;
+            const btn = c.$('[data-next]'); btn.disabled = true;
+            c.$('[data-st]').innerHTML = '<span class="row small"><span class="spin" style="width:16px;height:16px;border-width:2px"></span>AI 查詢英文名中…</span>';
+            try {
+              const r = await aiWorkEnglish(z);
+              if (r.en) { c.$('[data-en]').value = r.en; e = r.en; c.$('[data-st]').textContent = r.sure ? 'AI 填入的英文名，請確認是否正確。' : 'AI 不太確定，請確認或修改。'; }
+              else c.$('[data-st]').textContent = 'AI 查不到英文名，可以自己填，或留空直接輸入代號。';
+            } catch (err) { c.$('[data-st]').textContent = `${err.zh || 'AI 失敗'}。可以自己填英文名，或留空直接輸入代號。`; }
+            btn.disabled = false;
+            if (!e || !isOpen(c)) return;
+            return; // 讓你先確認 AI 填的英文名，再按一次下一步
+          }
+          const code = await askWorkCode(e);
+          if (!code) return;
+          const w = { id: uid(), zh: z, en: e, code, lastNo: 0, createdAt: Date.now() };
+          S.works.push(w); commit();
+          result = w;
+          await closeTop();
+          toast(`已建立作品 ${code}・${z}`);
+        };
+      },
+      onClose: () => res(result),
+    });
+    void ctx;
+  });
+}
+async function askWorkCode(en, { exceptId = null, current = '' } = {}) {
+  const sug = codeCandidates(en).find(c => !codeTaken(c, exceptId)) || '';
+  if (sug) {
+    const base = codeCandidates(en)[0];
+    const note = base && base !== sug ? `照規則是 ${base}，但已經有作品在用，改建議 ` : '依規則建議代號 ';
+    const r = await choiceDialog('作品代號', `${note}<span class="code lg">${sug}</span>，要用這個嗎？<div class="hint" style="margin-top:8px">典藏編號會長這樣：${sug}-0001-1</div>`,
+      [{ value: 'use', label: `使用 ${sug}`, primary: true, icon: 'check' }, { value: 'edit', label: '修改代號', icon: 'edit' }]);
+    if (!r) return null;
+    if (r === 'use') return sug;
+  }
+  let v = current || sug;
+  for (;;) {
+    const x = await promptDialog('輸入作品代號', { value: v, label: '3 個英文字母', placeholder: '例如 GUN', upper: true, maxlength: 3, hint: '只能用 A–Z，不能和其他作品重複。' });
+    if (x == null) return null;
+    v = x.trim().toUpperCase();
+    if (!validCode(v)) { toast('代號要剛好 3 個英文字母'); continue; }
+    if (codeTaken(v, exceptId)) { const o = S.works.find(w => w.code === v); toast(`${v} 已經是「${o.zh}」的代號`); continue; }
+    return v;
+  }
+}
+// 款號：有空號時問要不要補
+async function chooseNo(w) {
+  const next = (w.lastNo || 0) + 1;
+  const gaps = itemGaps(w);
+  if (!gaps.length) return next;
+  const r = await choiceDialog('有空出的編號', `<span class="code lg">${esc(w.code)}-${pad4(gaps[0])}</span> 已空出，要補上嗎？`, [
+    { value: gaps[0], label: `補上 ${w.code}-${pad4(gaps[0])}`, primary: true },
+    { value: next, label: `用新號 ${w.code}-${pad4(next)}` },
+    ...(gaps.length > 1 ? [{ value: 'pick', label: `從 ${gaps.length} 個空號中挑選` }] : []),
+  ]);
+  if (r !== 'pick') return r;
+  return choiceDialog('選擇空號', '', gaps.map(g => ({ value: g, label: `${w.code}-${pad4(g)}` })));
+}
+async function chooseCopyN(it) {
+  const next = (it.lastN || 0) + 1;
+  const gaps = copyGaps(it);
+  if (!gaps.length) return next;
+  const r = await choiceDialog('有空出的件號', `<span class="code lg">${esc(itemCode(it))}-${gaps[0]}</span> 已空出，要補上嗎？`, [
+    { value: gaps[0], label: `補上 ${itemCode(it)}-${gaps[0]}`, primary: true },
+    { value: next, label: `用新號 ${itemCode(it)}-${next}` },
+    ...(gaps.length > 1 ? [{ value: 'pick', label: `從 ${gaps.length} 個空號中挑選` }] : []),
+  ]);
+  if (r !== 'pick') return r;
+  return choiceDialog('選擇空號', '', gaps.map(g => ({ value: g, label: `${itemCode(it)}-${g}` })));
+}
+async function editItemNo(it) {
+  const w = workById(it.workId);
+  const v = await promptDialog('修改款號', { value: String(it.no), label: `${w.code}-____`, type: 'text', inputmode: 'numeric', hint: '輸入數字，例如 12 代表 ' + `${w.code}-0012` });
+  if (v == null) return;
+  const n = parseInt(String(v).replace(/\D/g, ''), 10);
+  if (!(n >= 1 && n <= 9999)) return toast('款號要是 1 到 9999 的數字');
+  if (n === it.no) return;
+  const other = S.items.find(x => x.workId === it.workId && x.no === n && x.id !== it.id);
+  if (other) return toast(`${w.code}-${pad4(n)} 已經是「${other.name}」`);
+  const from = itemCode(it), to = `${w.code}-${pad4(n)}`;
+  if (!await doubleConfirm(`把「${esc(it.name)}」的編號從 <span class="code">${from}</span> 改成 <span class="code">${to}</span>？底下 ${it.copies.length} 件的編號也會一起改變。`,
+    `確定修改嗎？盒子上如果已經貼了舊編號 ${from}，需要重貼標籤。`)) return;
+  it.no = n; w.lastNo = Math.max(w.lastNo || 0, n); commit(); toast(`編號已改為 ${to}`);
+}
+async function editCopyN(it, c) {
+  const v = await promptDialog('修改件號', { value: String(c.n), label: `${itemCode(it)}-__`, inputmode: 'numeric' });
+  if (v == null) return false;
+  const n = parseInt(String(v).replace(/\D/g, ''), 10);
+  if (!(n >= 1 && n <= 999)) { toast('件號要是 1 到 999 的數字'); return false; }
+  if (n === c.n) return false;
+  if (it.copies.some(x => x.n === n && x.id !== c.id)) { toast(`${itemCode(it)}-${n} 已經存在`); return false; }
+  if (!await doubleConfirm(`把 <span class="code">${copyCode(it, c)}</span> 改成 <span class="code">${itemCode(it)}-${n}</span>？`, '確定修改嗎？盒子上如果已經貼了舊編號，需要重貼標籤。')) return false;
+  c.n = n; it.lastN = Math.max(it.lastN || 0, n); commit(); toast(`件號已改為 ${itemCode(it)}-${n}`);
+  return true;
+}
+
+/* =========================================================
+   館藏詳情
+   ========================================================= */
+function openItem(id) {
+  const render = ctx => {
+    const it = itemById(id);
+    if (!it) return;
+    ctx.setTitle(it.name);
+    const w = workById(it.workId), s = seriesById(it.seriesId);
+    const phs = it.photos || [];
+    const mainPh = phs.find(x => x.id === it.mainPhoto) || phs[0];
+    const copies = [...it.copies].sort((a, b) => a.n - b.n);
+    const spend = itemSpend(it);
+    const kv = [
+      ['作品', w.id === W_OTH ? '其他（未指定作品）' : `${w.zh}${w.en ? `（${w.en}）` : ''}`],
+      ['系列', s?.name], ['角色', it.character], ['類型', typeName(it.typeId)], ['品牌', it.brand], ['版本', it.edition],
+      ['條碼', (it.barcodes || []).join('、')], ['標籤', (it.tags || []).join('、')],
+      ['原始定價', it.origPrice ? `${it.origPrice.text}${it.origPrice.at ? `<div class="small muted">${fmtDate(it.origPrice.at)} ${it.origPrice.src ? 'AI 查詢' : '手動填寫'}</div>` : ''}${(it.origPrice.src || []).length ? `<div class="src-list">${it.origPrice.src.slice(0, 3).map(x => `<a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title || x.uri)}</a>`).join('')}</div>` : ''}` : ''],
+      ['目前估價', it.estValue != null ? `${esc(money(it.estValue))} / 件` : ''],
+      ['備註', it.note],
+    ].filter(([, v]) => v);
+    ctx.setBody(`${mainPh ? `<div class="hero-photo" data-hero><img alt="" src="${mainPh.thumb}" data-hero-img></div>
+      ${phs.length > 1 ? `<div class="photo-strip" style="margin:-4px 0 12px">${phs.map(x => `<button class="ph ${x.id === mainPh.id ? 'main' : ''}" data-phv="${x.id}"><img alt="" src="${x.thumb}"></button>`).join('')}</div>` : ''}` : ''}
+      <div class="card">
+        <div class="row" style="align-items:flex-start"><div class="grow"><span class="code lg">${esc(itemCode(it))}</span>
+          <div style="font-size:19px;font-weight:800;margin-top:8px;line-height:1.35">${esc(it.name)}</div>
+          ${seriesLabel(it) ? `<div class="small muted" style="margin-top:2px">${esc(seriesLabel(it))}</div>` : ''}</div>
+          <div style="text-align:right"><div style="font-size:26px;font-weight:800" class="num">×${it.copies.length}</div>${spend ? `<div class="small muted num">${esc(money(spend))}</div>` : ''}</div></div>
+      </div>
+      <div class="section-title"><span>${L('items')}明細</span><span class="count">${it.copies.length} 件</span></div>
+      <div class="card" style="padding:4px 14px">${copies.map(c => {
+        const bits = [c.date ? fmtDate(c.date) : '', c.price != null ? money(c.price) : '', chanName(c.channelId)].filter(Boolean).join('・');
+        return `<div class="copy"><div class="grow"><span class="code">${esc(copyCode(it, c))}</span>
+          <div class="small" style="margin-top:4px">${esc(bits) || '<span class="muted">沒有購買資料</span>'}</div>
+          <div class="chips" style="margin-top:4px">${`<span class="chip ${c.seal === 'sealed' ? 'ok' : ''}">${esc(SEAL()[c.seal] || '')}</span>`}${condName(c.conditionId) ? `<span class="chip">${esc(condName(c.conditionId))}</span>` : ''}${c.complete === false ? '<span class="chip warn">配件不齊</span>' : ''}<span class="chip">${ic('pin').replace('<svg', '<svg style="width:12px;height:12px"')}${esc(placeLabel(c.placeId))}</span></div>
+          ${c.note ? `<div class="small muted" style="margin-top:4px">${esc(c.note)}</div>` : ''}</div>
+          <button class="icon-btn ghost" data-editc="${c.id}" aria-label="編輯這一件">${ic('edit')}</button></div>`;
+      }).join('')}</div>
+      <button class="btn gold block" data-addc>${ic('plus')}${esc(L('addCopy'))}</button>
+      <div class="section-title"><span>資料</span><button class="btn sm ghost" data-edit>${ic('edit')}編輯</button></div>
+      <div class="card"><div class="kv">${kv.map(([k, v]) => `<div class="k">${k}</div><div>${k === '原始定價' ? v : esc(v)}</div>`).join('') || '<div class="muted small">還沒有其他資料</div>'}</div></div>
+      <div class="row wrap" style="gap:8px;margin-bottom:8px">
+        <button class="btn grow" data-price>${ic('globe')}${it.origPrice ? '重新查原價' : 'AI 查原價'}</button>
+        <button class="btn grow" data-google>${ic('search')}Google 搜尋</button>
+      </div>
+      <div class="row wrap" style="gap:8px;margin-bottom:8px">
+        <button class="btn grow" data-no>${ic('tag')}修改編號</button>
+        <button class="btn grow" data-want>${ic('heart')}徵集同作品</button>
+      </div>
+      <button class="btn danger block" data-delete>${ic('trash')}${esc(L('remove'))}</button>
+      <div class="small muted" style="text-align:center;margin:12px 0 0">${it.createdAt ? `${fmtDate(toISO(new Date(it.createdAt)))} 建立` : ''}</div>`);
+    if (mainPh) {
+      Photos.get(mainPh.id).then(d => { const im = ctx.$('[data-hero-img]'); if (d && im) im.src = d; });
+      ctx.$('[data-hero]').onclick = () => openPhotoViewer(mainPh);
+    }
+    ctx.$$('[data-phv]').forEach(b => b.onclick = () => openPhotoViewer(phs.find(x => x.id === b.dataset.phv)));
+    ctx.$$('[data-editc]').forEach(b => b.onclick = () => openCopyForm(it.id, b.dataset.editc));
+    ctx.$('[data-addc]').onclick = () => openCopyForm(it.id, null);
+    ctx.$('[data-edit]').onclick = () => openItemForm({ item: it });
+    ctx.$('[data-no]').onclick = () => editItemNo(it);
+    ctx.$('[data-price]').onclick = () => openPriceLookup(it);
+    ctx.$('[data-google]').onclick = () => googleSearch((it.barcodes || [])[0] || [w.id === W_OTH ? '' : w.zh, it.name].filter(Boolean).join(' '));
+    ctx.$('[data-want]').onclick = () => openWantForm({ prefill: { workId: it.workId, typeId: it.typeId, brand: it.brand, name: '' } });
+    ctx.$('[data-delete]').onclick = async () => {
+      if (!await confirmDialog(`確定要把「${esc(it.name)}」（${esc(itemCode(it))}，${it.copies.length} 件）${esc(L('remove'))}嗎？資料和照片都會刪除，無法復原。<div class="hint" style="margin-top:8px">刪除後 ${esc(itemCode(it))} 這個編號會空出來，之後新增時會問你要不要補上。</div>`, { ok: '刪除', danger: true })) return;
+      S.items = S.items.filter(x => x.id !== it.id);
+      for (const ph of it.photos || []) if (!photoUsedElsewhere(ph.id, it.id)) await Photos.del(ph.id);
+      commit(); await closeTop(); toast(`已${L('remove')}`);
+    };
+  };
+  sheet({ title: '', full: true, onMount: render, refresh: render });
+}
+function photoUsedElsewhere(pid, exceptId) {
+  return [...S.items, ...S.wants, ...S.drafts].some(x => x.id !== exceptId && (x.photos || []).some(p => p.id === pid));
+}
+function googleSearch(q) {
+  q = String(q || '').trim();
+  if (!q) return toast('沒有可以搜尋的條碼或名稱');
+  window.open(`https://www.google.com/search?q=${encodeURIComponent(q)}`, '_blank', 'noopener');
+}
+
+/* =========================================================
+   每件明細（新增／編輯）
+   ========================================================= */
+function selOptions(arr, sel, { none = '未填', label = x => x.name } = {}) {
+  return `<option value="">${esc(none)}</option>` + arr.map(x => `<option value="${x.id}" ${x.id === sel ? 'selected' : ''}>${esc(label(x))}</option>`).join('');
+}
+function placeOptions(sel) { return selOptions(S.places, sel, { none: '未指定', label: p => placeLabel(p.id) }); }
+function sealChips(val) { return `<div class="chips" data-sealbox>${Object.entries(SEAL()).map(([k, n]) => `<button type="button" data-seal="${k}" class="${k === val ? 'on' : ''}">${esc(n)}</button>`).join('')}</div>`; }
+function copyFieldsHTML(c, { withCount = false } = {}) {
+  return `${withCount ? `<div class="field"><label>數量</label><div class="stepper"><button type="button" class="icon-btn" data-dec aria-label="減少">${ic('minus')}</button><input class="input grow" type="text" inputmode="numeric" value="${c.count || 1}" data-c="count"><button type="button" class="icon-btn" data-inc aria-label="增加">${ic('plus')}</button></div><div class="hint">同時買好幾件、狀態都一樣時用；每件會各自有件號。</div></div>` : ''}
+    <div class="two"><div class="field"><label>購買日期${c.dateGuess ? '<span class="ai-mark">依照片日期推測</span>' : ''}</label><input class="input" type="date" value="${c.date || ''}" data-c="date"></div>
+      <div class="field"><label>價格（台幣${withCount ? '，每件' : ''}）</label><input class="input" type="text" inputmode="numeric" value="${c.price ?? ''}" placeholder="0" data-c="price"></div></div>
+    <div class="field"><label>購買管道</label><select class="input" data-c="channelId">${selOptions(S.channels, c.channelId)}</select></div>
+    <div class="field"><div class="label">${L('sealState')}</div>${sealChips(c.seal || 'sealed')}</div>
+    <div class="two"><div class="field"><label>${L('condition')}</label><select class="input" data-c="conditionId">${selOptions(S.conditions, c.conditionId)}</select></div>
+      <div class="field"><label>${L('place')}</label><select class="input" data-c="placeId">${placeOptions(c.placeId)}</select></div></div>
+    <div class="switch-row" style="border:0;padding-top:0"><div class="grow"><div>配件齊全</div><div class="small muted">說明書、配件、特典都在</div></div><label class="switch"><input type="checkbox" data-c="complete" ${c.complete !== false ? 'checked' : ''}><span></span></label></div>
+    <div class="field"><label>這一件的備註</label><input class="input" value="${esc(c.note || '')}" placeholder="例如：盒角小壓痕" data-c="note"></div>`;
+}
+function bindCopyFields(ctx, c) {
+  ctx.$$('[data-seal]').forEach(b => b.onclick = () => { c.seal = b.dataset.seal; ctx.$$('[data-seal]').forEach(x => x.classList.toggle('on', x === b)); });
+  const cnt = ctx.$('[data-c="count"]');
+  if (cnt) {
+    ctx.$('[data-dec]').onclick = () => { cnt.value = Math.max(1, (parseInt(cnt.value, 10) || 1) - 1); };
+    ctx.$('[data-inc]').onclick = () => { cnt.value = Math.min(99, (parseInt(cnt.value, 10) || 0) + 1); };
+  }
+}
+function readCopyFields(ctx, c) {
+  const v = k => ctx.$(`[data-c="${k}"]`);
+  if (v('count')) c.count = Math.max(1, Math.min(99, parseInt(v('count').value, 10) || 1));
+  c.date = v('date').value || '';
+  if (c.dateGuess && c.date !== c.dateGuess) c.dateGuess = null;
+  c.price = numOrNull(v('price').value);
+  c.channelId = v('channelId').value; c.conditionId = v('conditionId').value; c.placeId = v('placeId').value;
+  c.complete = v('complete').checked; c.note = v('note').value.trim();
+  c.seal = c.seal || 'sealed';
+}
+const cleanCopy = (c, n) => ({ id: uid(), n, date: c.date || '', price: c.price, channelId: c.channelId || '', conditionId: c.conditionId || '', seal: c.seal || 'sealed', complete: c.complete !== false, placeId: c.placeId || '', note: c.note || '', createdAt: Date.now() });
+function defaultCopy() {
+  const lastC = S.items.flatMap(it => it.copies).sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))[0];
+  return { count: 1, date: todayISO(), price: null, channelId: '', conditionId: S.conditions[0]?.id || '', seal: 'sealed', complete: true, placeId: lastC?.placeId || S.places[0]?.id || '', note: '' };
+}
+
+function openCopyForm(itemId, copyId, { prefill = {}, onDone } = {}) {
+  const it = itemById(itemId); if (!it) return;
+  const orig = copyId ? it.copies.find(c => c.id === copyId) : null;
+  const c = orig ? { ...orig } : { ...defaultCopy(), ...prefill };
+  sheet({
+    title: orig ? `編輯 ${copyCode(it, orig)}` : `${L('addCopy')}：${it.name}`,
+    full: true,
+    body: `${orig ? `<div class="card row"><span class="code lg">${esc(copyCode(it, orig))}</span><span class="grow"></span><button class="btn sm" data-n>${ic('edit')}改件號</button></div>` : `<div class="hint" style="margin:0 2px 10px">${esc(itemCode(it))} 目前有 ${it.copies.length} 件。</div>`}
+      ${copyFieldsHTML(c, { withCount: !orig })}
+      ${orig ? `<div class="hr"></div><button class="btn danger block" data-del>${ic('trash')}移出這一件</button>` : ''}`,
+    foot: `<button class="btn" data-cancel>取消</button><button class="btn primary" data-save>${orig ? '儲存' : esc(L('addCopy'))}</button>`,
+    onMount: ctx => {
+      bindCopyFields(ctx, c);
+      ctx.$('[data-cancel]').onclick = () => closeTop();
+      const nb = ctx.$('[data-n]'); if (nb) nb.onclick = async () => { if (await editCopyN(it, orig)) ctx.setTitle(`編輯 ${copyCode(it, orig)}`), ctx.$('.code.lg').textContent = copyCode(it, orig); };
+      const del = ctx.$('[data-del]');
+      if (del) del.onclick = async () => {
+        if (it.copies.length <= 1) return toast(`這是最後一件；要移出整款，請到下方「${L('remove')}」`);
+        if (!await confirmDialog(`移出 <span class="code">${copyCode(it, orig)}</span>？這個件號會空出來。`, { ok: '移出', danger: true })) return;
+        snapshot();
+        it.copies = it.copies.filter(x => x.id !== orig.id);
+        commit(); await closeTop(); toast(`已移出 ${copyCode(it, orig)}`, { label: '復原', fn: undo });
+      };
+      ctx.$('[data-save]').onclick = async () => {
+        readCopyFields(ctx, c);
+        if (orig) {
+          Object.assign(orig, cleanCopy(c, orig.n), { id: orig.id, n: orig.n, createdAt: orig.createdAt });
+          commit(); await closeTop(); toast('已儲存');
+          return;
+        }
+        const first = await chooseCopyN(it);
+        if (first == null) return;
+        const made = [];
+        let n = first;
+        for (let i = 0; i < c.count; i++) {
+          if (i > 0) n = Math.max(it.lastN || 0, ...it.copies.map(x => x.n)) + 1;
+          const nc = cleanCopy(c, n); nc.createdAt = Date.now() + i;
+          it.copies.push(nc); made.push(nc);
+          it.lastN = Math.max(it.lastN || 0, n);
+        }
+        it.updatedAt = Date.now();
+        onDone && await onDone(it);
+        commit(); await closeTop();
+        toast(`已${L('addCopy')} ${made.map(x => copyCode(it, x)).join('、')}`);
+      };
+    },
+  });
+}
+
+/* =========================================================
+   館藏資料表單（登錄入館／編輯）
+   ========================================================= */
+const FIELD_LABEL = { name: '名稱', work: '作品', series: '系列', character: '角色', typeId: '類型', brand: '品牌', edition: '版本', barcodes: '條碼' };
+function openItemForm({ item, prefill = {}, draftId = null, wantId = null, aiInfo = null } = {}) {
+  const isNew = !item;
+  const d = item ? JSON.parse(JSON.stringify(item)) : {
+    id: uid(), name: '', workId: W_OTH, seriesId: '', character: '', typeId: '', brand: '', edition: '', barcodes: [], tags: [], note: '',
+    estValue: null, origPrice: null, photos: [], mainPhoto: null, copies: [], lastN: 0, createdAt: Date.now(),
+  };
+  d.tagsText = (d.tags || []).join('、');
+  d.pendingWork = null; d.pendingSeries = '';
+  d.ai = new Set(); d.aiLoose = false;
+  const copy = { ...defaultCopy(), ...(prefill.copy || {}) };
+  let linkWant = wantId || null, linkWantOn = true;
+  const photoDraft = createPhotoDraft(d, prefill.photos || []);
+  if (isNew) applyFields(d, prefill.fields || {}, false);
+  if (aiInfo) { d.aiLoose = !!aiInfo.loose; }
+
+  function applyFields(t, f, onlyEmpty = true) {
+    const set = (k, v, mark = k) => { if (v == null || v === '' || (onlyEmpty && t[k])) return false; t[k] = v; if (f._ai) t.ai.add(mark); return true; };
+    let n = 0;
+    if (set('name', f.name)) n++;
+    if (f.barcodes?.length) { for (const b of f.barcodes) if (!t.barcodes.includes(b)) { t.barcodes.push(b); n++; } }
+    if (f.workId || f.workZh) {
+      if (!onlyEmpty || t.workId === W_OTH && !t.pendingWork) {
+        const ex = f.workId ? workById(f.workId) : findWork(f.workZh, f.workEn);
+        if (ex) { t.workId = ex.id; t.pendingWork = null; } else { t.pendingWork = { zh: f.workZh, en: f.workEn || '' }; t.workId = '_pending'; }
+        if (f._ai) t.ai.add('work'); n++;
+      }
+    }
+    if (f.seriesName && (!onlyEmpty || (!t.seriesId && !t.pendingSeries))) {
+      const ws = t.workId && t.workId !== '_pending' ? S.series.find(s => s.workId === t.workId && normName(s.name) === normName(f.seriesName)) : null;
+      if (ws) { t.seriesId = ws.id; t.pendingSeries = ''; } else { t.pendingSeries = f.seriesName; t.seriesId = '_pending'; }
+      if (f._ai) t.ai.add('series'); n++;
+    }
+    if (f.seriesId) { t.seriesId = f.seriesId; }
+    if (set('character', f.character)) n++;
+    if (f.typeName && (!onlyEmpty || !t.typeId)) { const ty = S.types.find(x => x.name === f.typeName); if (ty) { t.typeId = ty.id; if (f._ai) t.ai.add('typeId'); n++; } }
+    if (f.typeId) t.typeId = f.typeId;
+    if (set('brand', f.brand)) n++;
+    if (set('edition', f.edition)) n++;
+    return n;
+  }
+
+  const render = ctx => {
+    const isAI = k => d.ai.has(k) ? `<span class="ai-mark">${d.aiLoose ? 'AI 推測' : 'AI'}</span>` : '';
+    const w = d.workId === '_pending' ? null : workById(d.workId);
+    const seriesList = w ? S.series.filter(s => s.workId === w.id) : [];
+    const chars = [...new Set(S.items.filter(x => w && x.workId === w.id).map(x => x.character).filter(Boolean))];
+    const brands = [...new Set([...S.items, ...S.wants].map(x => x.brand).filter(Boolean))];
+    const dups = isNew ? findDuplicates(d) : [];
+    const want = isNew ? (linkWant ? wantById(linkWant) : findWantMatch(d)) : null;
+    if (want && !wantId) linkWant = want.id;
+    ctx.setBody(`
+      ${d.aiLoose ? `<div class="banner info">${ic('sparkle')}<div class="small">這是<b>沒有盒子的玩具</b>，AI 只能看外型推測，作品、系列、版本可能不準，請確認後再存。</div></div>` : ''}
+      ${dups.map(x => `<div class="banner gold">${ic('alert')}<div class="grow small">${x.byCode ? '這個條碼已經在館藏' : '館藏可能已經有'}：<span class="code">${esc(itemCode(x.it))}</span> <b>${esc(x.it.name)}</b>（×${x.it.copies.length}）
+        <div class="row" style="gap:6px;margin-top:8px"><button class="btn sm primary" data-dupadd="${x.it.id}">增加一件到這款</button><button class="btn sm" data-dupopen="${x.it.id}">看看</button></div><div class="hint">不是同一款就繼續填，當成新的一款。</div></div></div>`).join('')}
+      ${want ? `<div class="banner info">${ic('heart')}<div class="grow small">${esc(L('wants'))}裡有「<b>${esc(want.name)}</b>」（${WANT_STATUS[want.status]}）。
+        <label class="row" style="gap:8px;margin-top:6px"><input type="checkbox" data-linkwant ${linkWantOn ? 'checked' : ''} style="width:20px;height:20px">${esc(L('add'))}後從清單移除</label></div></div>` : ''}
+      ${photoDraft.html()}
+      <div class="field"><label>名稱${isAI('name')}</label><input class="input" data-f="name" value="${esc(d.name)}" placeholder="例如：RG 1/144 獨角獸鋼彈"></div>
+      <div class="field"><label>作品${isAI('work')}</label><select class="input" data-f="workId">
+        ${d.pendingWork ? `<option value="_pending" selected>新作品：${esc(d.pendingWork.zh)}${d.pendingWork.en ? `（${esc(d.pendingWork.en)}）` : ''}</option>` : ''}
+        ${sortedWorks().map(x => `<option value="${x.id}" ${x.id === d.workId ? 'selected' : ''}>${esc(x.code)}　${esc(x.zh)}</option>`).join('')}
+        <option value="_new">＋ 新作品…</option></select>
+        ${d.pendingWork ? '<div class="hint">儲存時會幫這個新作品建立代號。</div>' : ''}</div>
+      <div class="two"><div class="field"><label>系列${isAI('series')}</label><select class="input" data-f="seriesId">
+        <option value="">未指定</option>
+        ${d.pendingSeries ? `<option value="_pending" selected>新系列：${esc(d.pendingSeries)}</option>` : ''}
+        ${seriesList.map(s => `<option value="${s.id}" ${s.id === d.seriesId ? 'selected' : ''}>${esc(s.name)}</option>`).join('')}
+        <option value="_new">＋ 新系列…</option></select></div>
+        <div class="field"><label>角色${isAI('character')}</label><input class="input" data-f="character" value="${esc(d.character)}" list="charlist" placeholder="例如：獨角獸"><datalist id="charlist">${chars.map(x => `<option value="${esc(x)}">`).join('')}</datalist></div></div>
+      <div class="two"><div class="field"><label>類型${isAI('typeId')}</label><select class="input" data-f="typeId">${selOptions(S.types, d.typeId)}</select></div>
+        <div class="field"><label>品牌${isAI('brand')}</label><input class="input" data-f="brand" value="${esc(d.brand)}" list="brandlist" placeholder="例如：BANDAI"><datalist id="brandlist">${brands.map(x => `<option value="${esc(x)}">`).join('')}</datalist></div></div>
+      <div class="field"><label>版本${isAI('edition')}</label><input class="input" data-f="edition" value="${esc(d.edition)}" placeholder="例如：一般版、限定版、特典、隱藏版"></div>
+      ${isNew ? `<div class="section-title"><span>第一件的購買資料</span></div><div class="card">${copyFieldsHTML(copy, { withCount: true })}</div>` : ''}
+      <div class="section-title"><span>條碼</span></div>
+      <div class="card">
+        ${(d.barcodes || []).map((b, i) => `<div class="row" style="margin-bottom:6px">${ic('barcode')}<span class="grow num">${esc(b)}</span><button type="button" class="icon-btn ghost" data-bc-del="${i}" aria-label="移除">${ic('x')}</button></div>`).join('') || '<div class="small muted" style="margin-bottom:8px">沒有條碼也可以；有條碼的話，逛店掃一下就知道買過沒。</div>'}
+        <div class="row" style="gap:8px"><button type="button" class="btn sm grow" data-bc-scan>${ic('scan')}掃描</button><button type="button" class="btn sm grow" data-bc-type>${ic('keyboard')}手動輸入</button></div>
+      </div>
+      <div class="section-title"><span>其他</span></div>
+      <div class="card">
+        <div class="field"><label>標籤</label><input class="input" data-f="tagsText" value="${esc(d.tagsText)}" placeholder="用頓號或逗號分隔，例如：送禮、想出售"></div>
+        <div class="two"><div class="field"><label>目前估價（每件）</label><input class="input" type="text" inputmode="numeric" data-f="estValue" value="${d.estValue ?? ''}" placeholder="選填"></div>
+          <div class="field"><label>原始定價</label><input class="input" data-f="origPriceText" value="${esc(d.origPrice?.text || '')}" placeholder="例如 ¥1,650"></div></div>
+        <div class="field" style="margin:0"><label>備註</label><textarea class="input" data-f="note" placeholder="選填">${esc(d.note)}</textarea></div>
+      </div>
+      ${!isNew ? `<div class="hint" style="margin:0 2px">典藏編號 ${esc(itemCode(item))}；要改編號請在詳情頁按「修改編號」。換作品時編號會跟著改。</div>` : ''}`);
+    ctx.setFoot(`<button class="btn" data-cancel>取消</button><button class="btn primary" data-save>${isNew ? esc(L('add')) : '儲存'}</button>`);
+
+    const read = () => {
+      ctx.$$('[data-f]').forEach(el => { d[el.dataset.f] = el.value; });
+      d.name = d.name.trim(); d.character = d.character.trim(); d.brand = d.brand.trim(); d.edition = d.edition.trim(); d.note = d.note.trim();
+      if (isNew) readCopyFields(ctx, copy);
+      const lw = ctx.$('[data-linkwant]'); if (lw) linkWantOn = lw.checked;
+    };
+    photoDraft.bind(ctx, {
+      getName: () => ctx.$('[data-f="name"]').value,
+      onAI: async canvases => {
+        read();
+        const r = await aiIdentifySingle(canvases);
+        if (!r) return;
+        const n = applyFields(d, { ...r, _ai: true }, true);
+        if (r.loose) d.aiLoose = true;
+        render(ctx);
+        toast(n ? `AI 填入 ${n} 個空白欄位，請確認` : 'AI 沒有可以補的空白欄位');
+      },
+    });
+    if (isNew) bindCopyFields(ctx, copy);
+    ctx.$$('[data-dupadd]').forEach(b => b.onclick = async () => {
+      read();
+      const target = itemById(b.dataset.dupadd);
+      const extraPhotos = await photoDraft.takeNew();
+      await closeTop();
+      openCopyForm(target.id, null, {
+        prefill: { ...copy, count: copy.count || 1 },
+        onDone: async t => {
+          if (extraPhotos.length && !(t.photos || []).length) { t.photos = extraPhotos; t.mainPhoto = extraPhotos[0].id; }
+          for (const bc of d.barcodes) if (!t.barcodes.includes(bc) && !itemsByBarcode(bc).length) t.barcodes.push(bc);
+          if (draftId) await removeDraft(draftId);
+          for (const p of extraPhotos) if (!photoUsedElsewhere(p.id, null)) await Photos.del(p.id);
+          if (linkWant && linkWantOn) removeWant(linkWant, t);
+        },
+      });
+    });
+    ctx.$$('[data-dupopen]').forEach(b => b.onclick = () => openItem(b.dataset.dupopen));
+    ctx.$('[data-f="workId"]').onchange = async e => {
+      const v = e.target.value;
+      read();
+      if (v === '_new') {
+        const nw = await openWorkCreate({});
+        if (nw) { d.workId = nw.id; d.pendingWork = null; }
+        else d.workId = d.pendingWork ? '_pending' : (item?.workId || W_OTH);
+      } else if (v !== '_pending') { d.pendingWork = null; }
+      d.ai.delete('work');
+      if (d.seriesId && d.seriesId !== '_pending' && seriesById(d.seriesId)?.workId !== d.workId) d.seriesId = '';
+      render(ctx);
+    };
+    ctx.$('[data-f="seriesId"]').onchange = async e => {
+      read();
+      if (e.target.value === '_new') {
+        const n = (await promptDialog('新系列', { placeholder: '例如：HG 系列', label: `屬於「${d.pendingWork?.zh || workById(d.workId).zh}」` }) || '').trim();
+        if (n) { d.pendingSeries = n; d.seriesId = '_pending'; } else d.seriesId = d.pendingSeries ? '_pending' : '';
+      } else if (e.target.value !== '_pending') d.pendingSeries = '';
+      d.ai.delete('series');
+      render(ctx);
+    };
+    ctx.$$('[data-bc-del]').forEach(b => b.onclick = () => { read(); d.barcodes.splice(+b.dataset.bcDel, 1); render(ctx); });
+    const addCode = code => {
+      code = String(code || '').trim(); if (!code) return;
+      if (!d.barcodes.includes(code)) d.barcodes.push(code);
+      render(ctx);
+    };
+    ctx.$('[data-bc-scan]').onclick = () => { read(); openScanner({ capture: addCode }); };
+    ctx.$('[data-bc-type]').onclick = async () => { read(); const v = await promptDialog('輸入條碼', { inputmode: 'numeric', placeholder: '條碼下方的數字' }); if (v) addCode(v); };
+    ctx.$('[data-cancel]').onclick = () => closeTop();
+    ctx.$('[data-save]').onclick = async () => {
+      read();
+      if (!d.name) return toast('請輸入名稱');
+      // 作品
+      let work = d.workId === '_pending' ? null : workById(d.workId);
+      if (d.workId === '_pending') {
+        const ex = findWork(d.pendingWork.zh, d.pendingWork.en);
+        work = ex || await openWorkCreate(d.pendingWork);
+        if (!work) return;
+        d.workId = work.id; d.pendingWork = null; render(ctx);
+      }
+      // 換作品 → 編號會改變
+      let newNo = null;
+      if (!isNew && d.workId !== item.workId) {
+        const nw = workById(d.workId);
+        if (!await doubleConfirm(`換到「${esc(nw.zh)}」之後，典藏編號會從 <span class="code">${esc(itemCode(item))}</span> 改成 <span class="code">${esc(nw.code)}-____</span>。`, '確定要換作品並改編號嗎？盒子上的舊標籤需要重貼。')) return;
+        newNo = await chooseNo(nw); if (newNo == null) return;
+      }
+      const tags = d.tagsText.split(/[、,，;；\n]+/).map(x => x.trim()).filter(Boolean);
+      const est = numOrNull(d.estValue);
+      const opText = (d.origPriceText || '').trim();
+      const origPrice = opText ? (d.origPrice && d.origPrice.text === opText ? d.origPrice : { text: opText, at: todayISO(), src: null }) : null;
+      let no = item?.no;
+      if (isNew) { no = await chooseNo(work); if (no == null) return; }
+      // 系列
+      let seriesId = d.seriesId === '_pending' ? '' : d.seriesId;
+      if (d.seriesId === '_pending' && d.pendingSeries) {
+        const ex = S.series.find(s => s.workId === work.id && normName(s.name) === normName(d.pendingSeries));
+        if (ex) seriesId = ex.id; else { const s = { id: uid(), workId: work.id, name: d.pendingSeries }; S.series.push(s); seriesId = s.id; }
+      }
+      const out = isNew ? { id: d.id, createdAt: Date.now(), copies: [], lastN: 0 } : itemById(item.id);
+      Object.assign(out, {
+        name: d.name, workId: work.id, seriesId, character: d.character, typeId: d.typeId, brand: d.brand, edition: d.edition,
+        barcodes: d.barcodes, tags, note: d.note, estValue: est, origPrice, updatedAt: Date.now(),
+      });
+      if (newNo != null) { out.no = newNo; work.lastNo = Math.max(work.lastNo || 0, newNo); }
+      await photoDraft.commit(out);
+      if (isNew) {
+        out.no = no; work.lastNo = Math.max(work.lastNo || 0, no);
+        for (let i = 0; i < copy.count; i++) { const c = cleanCopy(copy, i + 1); c.createdAt = Date.now() + i; out.copies.push(c); }
+        out.lastN = copy.count;
+        S.items.push(out);
+        if (draftId) await removeDraft(draftId, { keepPhotos: true });
+        if (linkWant && linkWantOn) removeWant(linkWant, out);
+      }
+      if (!S.settings.persistAsked) requestPersist();
+      commit();
+      await closeTop();
+      toast(isNew ? `已${L('add')} ${itemCode(out)}` : '已儲存');
+      if (isNew && !draftId) openItem(out.id);
+    };
+  };
+  sheet({ title: isNew ? L('add') : '編輯資料', full: true, onMount: render });
+}
+function findWork(zh, en) {
+  return S.works.find(w => (zh && normName(w.zh) === normName(zh)) || (en && w.en && normName(w.en) === normName(en))) || null;
+}
+function findDuplicates(d) {
+  const out = [];
+  for (const b of d.barcodes || []) for (const it of itemsByBarcode(b)) if (!out.some(x => x.it.id === it.id)) out.push({ it, byCode: true });
+  if (d.name && d.name.length >= 2) {
+    const cand = S.items.filter(it => !out.some(x => x.it.id === it.id))
+      .map(it => ({ it, s: similar(d.name, it.name) + (d.workId && d.workId === it.workId ? .1 : 0) }))
+      .filter(x => x.s >= .7).sort((a, b) => b.s - a.s).slice(0, 2);
+    out.push(...cand.map(x => ({ it: x.it, byCode: false })));
+  }
+  return out.slice(0, 3);
+}
+function findWantMatch(d) {
+  const open = S.wants;
+  for (const b of d.barcodes || []) { const w = open.find(x => (x.barcodes || []).includes(b)); if (w) return w; }
+  if (d.name && d.name.length >= 2) {
+    const best = open.map(w => ({ w, s: similar(d.name, w.name) })).sort((a, b) => b.s - a.s)[0];
+    if (best && best.s >= .7) return best.w;
+  }
+  return null;
+}
+function removeWant(id, toItem) {
+  const w = wantById(id); if (!w) return;
+  S.wants = S.wants.filter(x => x.id !== id);
+  // 照片沒被新收藏使用的才刪除
+  for (const p of w.photos || []) if (!(toItem?.photos || []).some(x => x.id === p.id) && !photoUsedElsewhere(p.id, id)) Photos.del(p.id);
+}
+
+/* =========================================================
+   徵集清單：詳情／表單
+   ========================================================= */
+function openWant(id) {
+  const render = ctx => {
+    const w = wantById(id); if (!w) return;
+    ctx.setTitle(w.name);
+    const wk = w.workId ? workById(w.workId) : null;
+    const phs = w.photos || []; const mainPh = phs.find(x => x.id === w.mainPhoto) || phs[0];
+    const balance = w.price != null && w.deposit != null ? w.price - w.deposit : null;
+    const kv = [
+      ['作品', wk && wk.id !== W_OTH ? wk.zh : ''], ['角色', w.character], ['類型', typeName(w.typeId)], ['品牌', w.brand], ['版本', w.edition],
+      ['預算', w.budget != null ? money(w.budget) : ''], ['預購價', w.price != null ? money(w.price) : ''], ['訂金', w.deposit != null ? money(w.deposit) : ''],
+      ['尾款', balance != null ? money(balance) : ''], ['發售日', w.releaseDate ? fmtDate(w.releaseDate) : ''], ['預計到貨', w.eta ? fmtDate(w.eta) : ''],
+      ['購買管道', chanName(w.channelId)], ['條碼', (w.barcodes || []).join('、')], ['備註', w.note],
+    ].filter(([, v]) => v);
+    ctx.setBody(`${mainPh ? `<div class="hero-photo" data-hero><img alt="" src="${mainPh.thumb}" data-hero-img></div>` : ''}
+      <div class="card"><div style="font-size:19px;font-weight:800">${esc(w.name)}</div><div class="chips" style="margin-top:8px">${wantChip(w)}</div></div>
+      ${w.status === 'arrived' || TRANSIT.includes(w.status) ? `<button class="btn gold block" data-arrive>${ic('check')}${w.status === 'arrived' ? '' : '已到貨，'}${esc(L('add'))}</button><div class="spacer"></div>` : ''}
+      <div class="section-title"><span>狀態</span></div>
+      <div class="chips">${Object.entries(WANT_STATUS).map(([k, n]) => `<button data-st="${k}" class="${k === w.status ? 'on' : ''}">${n}</button>`).join('')}</div>
+      <div class="section-title"><span>資料</span><button class="btn sm ghost" data-edit>${ic('edit')}編輯</button></div>
+      <div class="card"><div class="kv">${kv.map(([k, v]) => `<div class="k">${k}</div><div>${esc(v)}</div>`).join('') || '<div class="muted small">還沒有其他資料</div>'}</div></div>
+      <div class="row wrap" style="gap:8px;margin-bottom:8px">
+        ${w.status === 'want' ? `<button class="btn grow" data-buy>${ic('check')}已經買到了</button>` : ''}
+        <button class="btn grow" data-google>${ic('search')}Google 搜尋</button></div>
+      <button class="btn danger block" data-delete>${ic('trash')}從清單刪除</button>`);
+    if (mainPh) { Photos.get(mainPh.id).then(x => { const im = ctx.$('[data-hero-img]'); if (x && im) im.src = x; }); ctx.$('[data-hero]').onclick = () => openPhotoViewer(mainPh); }
+    ctx.$$('[data-st]').forEach(b => b.onclick = () => { w.status = b.dataset.st; commit(); toast(`狀態：${WANT_STATUS[w.status]}`); });
+    ctx.$('[data-edit]').onclick = () => openWantForm({ want: w });
+    const ar = ctx.$('[data-arrive]'); if (ar) ar.onclick = () => wantToItem(w);
+    const by = ctx.$('[data-buy]'); if (by) by.onclick = () => wantToItem(w);
+    ctx.$('[data-google]').onclick = () => googleSearch((w.barcodes || [])[0] || [wk && wk.id !== W_OTH ? wk.zh : '', w.name].filter(Boolean).join(' '));
+    ctx.$('[data-delete]').onclick = async () => {
+      if (!await confirmDialog(`把「${esc(w.name)}」從${esc(L('wants'))}刪除？`, { ok: '刪除', danger: true })) return;
+      snapshot(); S.wants = S.wants.filter(x => x.id !== w.id);
+      commit(); await closeTop(); toast('已刪除', { label: '復原', fn: undo });
+    };
+  };
+  sheet({ title: '', full: true, onMount: render, refresh: render });
+}
+async function wantToItem(w) {
+  await closeAll();
+  openItemForm({
+    wantId: w.id,
+    prefill: {
+      fields: { name: w.name, workId: w.workId && w.workId !== W_OTH ? w.workId : null, character: w.character, typeId: w.typeId, brand: w.brand, edition: w.edition, barcodes: [...(w.barcodes || [])] },
+      photos: (w.photos || []).map(p => ({ ...p, keep: true })),
+      copy: { price: w.price ?? w.budget ?? null, channelId: w.channelId || '' },
+    },
+  });
+}
+function openWantForm({ want, prefill = {} } = {}) {
+  const isNew = !want;
+  const d = want ? JSON.parse(JSON.stringify(want)) : { id: uid(), name: '', workId: W_OTH, character: '', typeId: '', brand: '', edition: '', barcodes: [], budget: null, price: null, deposit: null, channelId: '', releaseDate: '', eta: '', status: 'want', note: '', photos: [], mainPhoto: null, createdAt: Date.now(), ...prefill };
+  const photoDraft = createPhotoDraft(d, []);
+  const render = ctx => {
+    const brands = [...new Set([...S.items, ...S.wants].map(x => x.brand).filter(Boolean))];
+    ctx.setBody(`${photoDraft.html()}
+      <div class="field"><label>名稱</label><input class="input" data-f="name" value="${esc(d.name)}" placeholder="想收的玩具"></div>
+      <div class="field"><label>作品</label><select class="input" data-f="workId">${sortedWorks().map(x => `<option value="${x.id}" ${x.id === d.workId ? 'selected' : ''}>${esc(x.code)}　${esc(x.zh)}</option>`).join('')}<option value="_new">＋ 新作品…</option></select></div>
+      <div class="two"><div class="field"><label>角色</label><input class="input" data-f="character" value="${esc(d.character)}"></div>
+        <div class="field"><label>類型</label><select class="input" data-f="typeId">${selOptions(S.types, d.typeId)}</select></div></div>
+      <div class="two"><div class="field"><label>品牌</label><input class="input" data-f="brand" value="${esc(d.brand)}" list="brandlist2"><datalist id="brandlist2">${brands.map(x => `<option value="${esc(x)}">`).join('')}</datalist></div>
+        <div class="field"><label>版本</label><input class="input" data-f="edition" value="${esc(d.edition)}"></div></div>
+      <div class="field"><div class="label">狀態</div><div class="chips">${Object.entries(WANT_STATUS).map(([k, n]) => `<button type="button" data-st="${k}" class="${k === d.status ? 'on' : ''}">${n}</button>`).join('')}</div></div>
+      <div class="two"><div class="field"><label>預算</label><input class="input" type="text" inputmode="numeric" data-f="budget" value="${d.budget ?? ''}" placeholder="台幣"></div>
+        <div class="field"><label>預購價</label><input class="input" type="text" inputmode="numeric" data-f="price" value="${d.price ?? ''}" placeholder="台幣"></div></div>
+      <div class="two"><div class="field"><label>訂金</label><input class="input" type="text" inputmode="numeric" data-f="deposit" value="${d.deposit ?? ''}" placeholder="台幣"></div>
+        <div class="field"><label>購買管道</label><select class="input" data-f="channelId">${selOptions(S.channels, d.channelId)}</select></div></div>
+      <div class="two"><div class="field"><label>發售日</label><input class="input" type="date" data-f="releaseDate" value="${d.releaseDate || ''}"></div>
+        <div class="field"><label>預計到貨</label><input class="input" type="date" data-f="eta" value="${d.eta || ''}"></div></div>
+      <div class="hint" style="margin:-8px 2px 12px">預購中的商品快到貨（7 天內）或超過預計日期時，${esc(L('home'))}會提醒你。</div>
+      <div class="section-title"><span>條碼</span></div>
+      <div class="card">${(d.barcodes || []).map((b, i) => `<div class="row" style="margin-bottom:6px">${ic('barcode')}<span class="grow num">${esc(b)}</span><button type="button" class="icon-btn ghost" data-bc-del="${i}" aria-label="移除">${ic('x')}</button></div>`).join('')}
+        <div class="row" style="gap:8px"><button type="button" class="btn sm grow" data-bc-scan>${ic('scan')}掃描</button><button type="button" class="btn sm grow" data-bc-type>${ic('keyboard')}手動輸入</button></div></div>
+      <div class="field"><label>備註</label><textarea class="input" data-f="note">${esc(d.note)}</textarea></div>`);
+    ctx.setFoot(`<button class="btn" data-cancel>取消</button><button class="btn primary" data-save>${isNew ? '加入清單' : '儲存'}</button>`);
+    const read = () => { ctx.$$('[data-f]').forEach(el => { d[el.dataset.f] = el.value; }); d.name = d.name.trim(); };
+    photoDraft.bind(ctx, { getName: () => ctx.$('[data-f="name"]').value });
+    ctx.$$('[data-st]').forEach(b => b.onclick = () => { d.status = b.dataset.st; ctx.$$('[data-st]').forEach(x => x.classList.toggle('on', x === b)); });
+    ctx.$('[data-f="workId"]').onchange = async e => {
+      read();
+      if (e.target.value === '_new') { const nw = await openWorkCreate({}); d.workId = nw ? nw.id : (want?.workId || W_OTH); }
+      render(ctx);
+    };
+    ctx.$$('[data-bc-del]').forEach(b => b.onclick = () => { read(); d.barcodes.splice(+b.dataset.bcDel, 1); render(ctx); });
+    const addCode = code => { code = String(code || '').trim(); if (code && !d.barcodes.includes(code)) d.barcodes.push(code); render(ctx); };
+    ctx.$('[data-bc-scan]').onclick = () => { read(); openScanner({ capture: addCode }); };
+    ctx.$('[data-bc-type]').onclick = async () => { read(); const v = await promptDialog('輸入條碼', { inputmode: 'numeric' }); if (v) addCode(v); };
+    ctx.$('[data-cancel]').onclick = () => closeTop();
+    ctx.$('[data-save]').onclick = async () => {
+      read();
+      if (!d.name) return toast('請輸入名稱');
+      for (const k of ['budget', 'price', 'deposit']) d[k] = numOrNull(d[k]);
+      const out = isNew ? d : wantById(want.id);
+      if (!isNew) Object.assign(out, d);
+      await photoDraft.commit(out);
+      if (isNew) S.wants.push(out);
+      commit(); await closeTop();
+      toast(isNew ? `已加入${L('wants')}` : '已儲存');
+    };
+  };
+  sheet({ title: isNew ? `加入${L('wants')}` : '編輯', full: true, onMount: render });
+}
+
+/* =========================================================
+   照片
+   ========================================================= */
+function toCanvas(src, sx = 0, sy = 0, sw, sh, maxSide = 4096) {
+  const W = src.videoWidth || src.naturalWidth || src.width, H = src.videoHeight || src.naturalHeight || src.height;
+  sw = sw ?? W; sh = sh ?? H;
+  const k = Math.min(1, maxSide / Math.max(sw, sh));
+  const c = document.createElement('canvas');
+  c.width = Math.max(1, Math.round(sw * k)); c.height = Math.max(1, Math.round(sh * k));
+  const g = c.getContext('2d');
+  g.imageSmoothingQuality = 'high';
+  g.drawImage(src, sx, sy, sw, sh, 0, 0, c.width, c.height);
+  return c;
+}
+function thumbOf(canvas, size = 160) {
+  const s = Math.min(canvas.width, canvas.height);
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d'); g.imageSmoothingQuality = 'high';
+  g.drawImage(canvas, (canvas.width - s) / 2, (canvas.height - s) / 2, s, s, 0, 0, size, size);
+  const d = c.toDataURL('image/jpeg', .72); c.width = c.height = 0;
+  return d;
+}
+function makePhoto(canvas) {
+  const full = toCanvas(canvas, 0, 0, undefined, undefined, 1200);
+  const p = { id: uid(), thumb: thumbOf(canvas), full: full.toDataURL('image/jpeg', .82) };
+  full.width = full.height = 0;
+  return p;
+}
+async function fileToCanvas(file, max = 2000) {
+  const bmp = await createImageBitmap(file, { imageOrientation: 'from-image' }).catch(() => createImageBitmap(file));
+  const c = toCanvas(bmp, 0, 0, bmp.width, bmp.height, max);
+  bmp.close?.();
+  return c;
+}
+function dataToCanvas(src, max = 2000) {
+  return new Promise((res, rej) => { const im = new Image(); im.onload = () => res(toCanvas(im, 0, 0, im.naturalWidth, im.naturalHeight, max)); im.onerror = rej; im.src = src; });
+}
+async function photoCanvas(p) { const d = p.full || await Photos.get(p.id) || p.thumb; return dataToCanvas(d); }
+function pickImageFiles(multiple = false) {
+  return new Promise(res => {
+    const i = document.createElement('input'); i.type = 'file'; i.accept = 'image/*'; i.multiple = multiple;
+    i.onchange = () => res([...i.files]);
+    i.click();
+  });
+}
+// 讀照片的拍攝日期（EXIF DateTimeOriginal）；讀不到就回傳 null
+async function readExifDate(file) {
+  try {
+    const buf = await file.slice(0, 256 * 1024).arrayBuffer();
+    const v = new DataView(buf);
+    if (v.getUint16(0) !== 0xFFD8) return null;
+    let off = 2;
+    while (off + 4 < v.byteLength) {
+      const marker = v.getUint16(off); const len = v.getUint16(off + 2);
+      if (marker === 0xFFE1 && v.getUint32(off + 4) === 0x45786966) {
+        const t = off + 10; const le = v.getUint16(t) === 0x4949;
+        const u16 = o => v.getUint16(t + o, le), u32 = o => v.getUint32(t + o, le);
+        const str = (o, n) => { let s = ''; for (let i = 0; i < n; i++) { const ch = v.getUint8(t + o + i); if (!ch) break; s += String.fromCharCode(ch); } return s; };
+        const readIFD = o => { const n = u16(o); const tags = {}; for (let i = 0; i < n; i++) { const e = o + 2 + i * 12; tags[u16(e)] = { type: u16(e + 2), count: u32(e + 4), val: u32(e + 8) }; } return tags; };
+        const ifd0 = readIFD(u32(4));
+        let dt = null;
+        if (ifd0[0x8769]) { const ex = readIFD(ifd0[0x8769].val); const tg = ex[0x9003] || ex[0x9004]; if (tg) dt = str(tg.val, 19); }
+        if (!dt && ifd0[0x0132]) dt = str(ifd0[0x0132].val, 19);
+        const m = /^(\d{4}):(\d{2}):(\d{2})/.exec(dt || '');
+        if (!m || m[1] === '0000') return null;
+        const iso = `${m[1]}-${m[2]}-${m[3]}`;
+        return iso <= todayISO() && iso >= '1990-01-01' ? iso : null;
+      }
+      if ((marker & 0xFF00) !== 0xFF00) break;
+      off += 2 + len;
+    }
+  } catch (e) { /* 沒有 EXIF */ }
+  return null;
+}
+
+/* ---------- photo editor inside forms ---------- */
+function createPhotoDraft(target, prefill = []) {
+  const list = (target.photos || []).map(p => ({ ...p }));
+  for (const p of prefill) list.push({ ...p });
+  let main = target.mainPhoto && list.some(p => p.id === target.mainPhoto) ? target.mainPhoto : list[0]?.id || null;
+  const removed = [];
+  let ctxRef = null, opts = {};
+  const draw = () => {
+    const box = ctxRef?.$('[data-photos]'); if (!box) return;
+    box.innerHTML = `<div class="photo-strip">${list.map(p => `<button type="button" class="ph ${p.id === main ? 'main' : ''}" data-ph="${p.id}"><img alt="" src="${p.thumb}">${p.id === main ? '<span class="badge">主圖</span>' : ''}</button>`).join('')}
+        ${list.length ? '' : `<div class="ph empty">${ic('camera')}<span>還沒有照片</span></div>`}</div>
+      <div class="row" style="gap:6px;margin-top:8px">
+        <button type="button" class="btn sm grow" data-ph-cam>${ic('camera')}拍照</button>
+        <button type="button" class="btn sm grow" data-ph-file>${ic('image')}相簿</button>
+        <button type="button" class="btn sm grow" data-ph-web>${ic('globe')}上網找圖</button>
+      </div>
+      ${opts.onAI ? `<button type="button" class="btn sm block" style="margin-top:6px" data-ph-ai ${list.length ? '' : 'disabled'}>${ic('sparkle')}AI 辨識這些照片，補上空白欄位</button>` : ''}
+      <div class="hint">${list.length > 1 ? '點照片可以設為主圖或刪除。' : ''}${opts.onAI ? (list.length ? ' AI 只在你按下按鈕時才會把照片傳給 Google。' : '') : ''}</div>`;
+    $$('[data-ph]', box).forEach(b => b.onclick = () => {
+      const p = list.find(x => x.id === b.dataset.ph);
+      openPhotoViewer(p, {
+        isMain: p.id === main,
+        onMain: () => { main = p.id; draw(); },
+        onDelete: () => { list.splice(list.indexOf(p), 1); if ((target.photos || []).some(x => x.id === p.id)) removed.push(p.id); if (main === p.id) main = list[0]?.id || null; draw(); },
+      });
+    });
+    $('[data-ph-cam]', box).onclick = () => openPhotoCamera(c => { add(makePhoto(c)); c.width = c.height = 0; });
+    $('[data-ph-file]', box).onclick = async () => {
+      const fs = await pickImageFiles(true);
+      for (const f of fs.slice(0, 8)) {
+        try { const c = await fileToCanvas(f); add(makePhoto(c)); c.width = c.height = 0; } catch (e) { toast('有照片無法讀取'); }
+      }
+    };
+    $('[data-ph-web]', box).onclick = () => {
+      const n = opts.getName ? opts.getName().trim() : '';
+      if (!n) return toast('請先輸入名稱，才能用名稱找圖');
+      window.open(`https://www.google.com/search?tbm=isch&q=${encodeURIComponent(n)}`, '_blank', 'noopener');
+      toast('找到喜歡的圖，長按下載後，回來按「相簿」選取');
+    };
+    const ai = $('[data-ph-ai]', box);
+    if (ai) ai.onclick = async () => {
+      if (!AI.key) { if (await confirmDialog('AI 辨識需要先在館務室設定 Gemini 金鑰。現在要去設定嗎？', { ok: '去設定' })) openAISettings(); return; }
+      if (!navigator.onLine) return toast('AI 辨識需要連網');
+      ai.disabled = true; ai.innerHTML = '<span class="spin" style="width:18px;height:18px;border-width:2px"></span>AI 辨識中…';
+      try {
+        const canvases = await Promise.all(list.slice(0, 3).map(photoCanvas));
+        await opts.onAI(canvases);
+        canvases.forEach(c => { c.width = c.height = 0; });
+      } catch (e) { console.error(e); toast(e.zh || 'AI 辨識失敗'); }
+      if (ai.isConnected) { ai.disabled = false; ai.innerHTML = `${ic('sparkle')}AI 辨識這些照片，補上空白欄位`; }
+    };
+  };
+  function add(p) { list.push(p); if (!main) main = p.id; draw(); }
+  async function store() { for (const p of list) if (p.full) { await Photos.put(p.id, p.full); delete p.full; } }
+  return {
+    html: () => `<div class="field"><div class="label">照片</div><div data-photos></div></div>`,
+    bind(ctx, o = {}) { ctxRef = ctx; opts = o; draw(); },
+    async commit(t) {
+      await store();
+      for (const id of removed) if (!photoUsedElsewhere(id, t.id)) await Photos.del(id);
+      t.photos = list.map(p => ({ id: p.id, thumb: p.thumb }));
+      t.mainPhoto = main;
+    },
+    async takeNew() { await store(); return list.map(p => ({ id: p.id, thumb: p.thumb })); },
+  };
+}
+
+/* =========================================================
+   相機
+   ========================================================= */
+const Cam = {
+  stream: null,
+  async start(video) {
+    if (!navigator.mediaDevices?.getUserMedia) throw new Error('nocam');
+    this.stream = await navigator.mediaDevices.getUserMedia({ audio: false, video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } } });
+    video.srcObject = this.stream; video.setAttribute('playsinline', ''); video.muted = true;
+    await video.play();
+    const track = this.stream.getVideoTracks()[0];
+    try { const caps = track.getCapabilities?.() || {}; if (caps.focusMode?.includes('continuous')) await track.applyConstraints({ advanced: [{ focusMode: 'continuous' }] }); } catch (e) {}
+  },
+  canTorch() { try { return !!this.stream?.getVideoTracks()[0].getCapabilities?.().torch; } catch (e) { return false; } },
+  async torch(on) { try { await this.stream.getVideoTracks()[0].applyConstraints({ advanced: [{ torch: on }] }); } catch (e) {} },
+  stop(video) { this.stream?.getTracks().forEach(t => t.stop()); this.stream = null; if (video) { video.pause(); video.srcObject = null; } },
+};
+function camError(e) { return e.name === 'NotAllowedError' ? '沒有相機權限。請在 Chrome 網址列左側的設定中允許相機。' : '無法開啟相機。'; }
+async function hiResSnapshot(video) {
+  const vw = video.videoWidth, vh = video.videoHeight;
+  try {
+    const track = Cam.stream?.getVideoTracks()[0];
+    if (track && 'ImageCapture' in window) {
+      const blob = await Promise.race([new ImageCapture(track).takePhoto(), new Promise((_, r) => setTimeout(() => r(new Error('t')), 4000))]);
+      const bmp = await createImageBitmap(blob, { imageOrientation: 'from-image' });
+      if (Math.abs(bmp.width / bmp.height - vw / vh) < .03 && bmp.width > vw) { const c = toCanvas(bmp, 0, 0, bmp.width, bmp.height, 2400); bmp.close?.(); return c; }
+      bmp.close?.();
+    }
+  } catch (e) { /* fall back */ }
+  return toCanvas(video, 0, 0, vw, vh, 2400);
+}
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    if ([...document.scripts].some(s => s.src === src)) return res();
+    const s = document.createElement('script'); s.src = src; s.async = true;
+    s.onload = res; s.onerror = () => rej(new Error('load ' + src));
+    document.head.appendChild(s);
+  });
+}
+let barcodeDetector = null;
+async function getDetector() {
+  if (barcodeDetector) return barcodeDetector;
+  if ('BarcodeDetector' in window) {
+    try {
+      const supported = await BarcodeDetector.getSupportedFormats();
+      const want = ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'code_93', 'itf', 'codabar', 'qr_code', 'data_matrix'].filter(f => supported.includes(f));
+      if (want.length) { const d = new BarcodeDetector({ formats: want }); barcodeDetector = { detect: async src => { const r = await d.detect(src); return r[0]?.rawValue || null; } }; return barcodeDetector; }
+    } catch (e) { console.warn(e); }
+  }
+  await loadScript('https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js');
+  const Z = window.ZXing;
+  const hints = new Map(); hints.set(Z.DecodeHintType.TRY_HARDER, true);
+  const reader = new Z.MultiFormatReader(); reader.setHints(hints);
+  const cv = document.createElement('canvas');
+  barcodeDetector = {
+    detect: async video => {
+      const w = video.videoWidth, h = video.videoHeight; if (!w) return null;
+      const sc = Math.min(1, 1000 / w); cv.width = w * sc; cv.height = h * sc;
+      cv.getContext('2d', { willReadFrequently: true }).drawImage(video, 0, 0, cv.width, cv.height);
+      try { return reader.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(new Z.HTMLCanvasElementLuminanceSource(cv)))).getText(); }
+      catch (e) { return null; } finally { reader.reset(); }
+    },
+  };
+  return barcodeDetector;
+}
+async function detectBarcodesIn(canvas) {
+  if (!('BarcodeDetector' in window)) return [];
+  try {
+    const sup = await BarcodeDetector.getSupportedFormats();
+    const d = new BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf'].filter(f => sup.includes(f)) });
+    const r = await d.detect(canvas);
+    const seen = new Set();
+    return r.filter(x => x.rawValue && !seen.has(x.rawValue) && seen.add(x.rawValue)).map(x => ({
+      code: x.rawValue,
+      cx: (x.boundingBox.x + x.boundingBox.width / 2) / canvas.width * 1000,
+      cy: (x.boundingBox.y + x.boundingBox.height / 2) / canvas.height * 1000,
+    }));
+  } catch (e) { return []; }
+}
+
+function openScanner({ capture, title = '掃描條碼', hint = '把條碼對準框內', extra = null } = {}) {
+  const el = document.createElement('div');
+  el.className = 'overlay';
+  el.innerHTML = `<div class="cam">
+      <video muted playsinline></video>
+      <div class="frame"><div class="laser"></div></div>
+      <div class="cam-top"><button class="icon-btn" data-close aria-label="關閉">${ic('x')}</button><div class="grow"><b>${esc(title)}</b></div>
+        <button class="icon-btn" data-torch aria-label="手電筒" hidden>${ic('flash')}</button></div>
+      <div class="cam-bottom">
+        <div class="cam-msg" data-msg>${esc(hint)}</div>
+        <div class="row" style="gap:8px;margin-top:10px">
+          <button class="btn ghost grow" data-type>${ic('keyboard')}手動輸入條碼</button>
+          ${extra ? `<button class="btn ghost grow" data-extra>${ic('search')}${esc(extra.label)}</button>` : ''}
+        </div>
+      </div>
+    </div>`;
+  const video = $('video', el), msg = $('[data-msg]', el);
+  let running = true, handled = false;
+  const stop = () => { running = false; Cam.stop(video); };
+  pushOverlay(el, { onClose: stop });
+  $('[data-close]', el).onclick = () => closeTop();
+  let torchOn = false;
+  $('[data-torch]', el).onclick = async e => { torchOn = !torchOn; await Cam.torch(torchOn); e.currentTarget.classList.toggle('on', torchOn); };
+  const finish = async code => {
+    if (handled) return; handled = true;
+    stop(); if (navigator.vibrate) navigator.vibrate(60);
+    await closeTop(); capture(code);
+  };
+  $('[data-type]', el).onclick = async () => { const v = await promptDialog('輸入條碼', { inputmode: 'numeric', placeholder: '條碼下方的數字' }); if (v && v.trim()) finish(v.trim()); };
+  const ex = $('[data-extra]', el); if (ex) ex.onclick = async () => { handled = true; stop(); await closeTop(); extra.fn(); };
+  (async () => {
+    try { await Cam.start(video); if (!running) return Cam.stop(video); if (Cam.canTorch()) $('[data-torch]', el).hidden = false; }
+    catch (e) { console.warn(e); msg.textContent = camError(e) + '也可以改用手動輸入。'; $('.laser', el)?.remove(); return; }
+    let det;
+    try { det = await getDetector(); } catch (e) { msg.textContent = '這台手機無法辨識條碼（第一次使用需連網），請改用手動輸入。'; return; }
+    let last = null, same = 0;
+    const loop = async () => {
+      if (!running) return;
+      if (video.readyState >= 2) {
+        try {
+          const code = await det.detect(video);
+          if (code) { if (code === last) same++; else { last = code; same = 1; } if (same >= 2 || /^\d{8}$|^\d{12,14}$/.test(code)) return finish(code); }
+        } catch (e) {}
+      }
+      setTimeout(loop, 90);
+    };
+    loop();
+  })();
+}
+
+function openPhotoCamera(onShot, { title = '拍照', hint = '把玩具放在畫面中間' } = {}) {
+  const el = document.createElement('div');
+  el.className = 'overlay';
+  el.innerHTML = `<div class="cam">
+      <video muted playsinline></video>
+      <div class="cam-top"><button class="icon-btn" data-close aria-label="關閉">${ic('x')}</button><div class="grow"><b>${esc(title)}</b></div>
+        <button class="icon-btn" data-torch hidden aria-label="手電筒">${ic('flash')}</button></div>
+      <div class="cam-bottom"><div class="cam-msg" data-msg>${esc(hint)}</div><button class="shutter" data-shot aria-label="拍照"></button></div>
+    </div>`;
+  const video = $('video', el), msg = $('[data-msg]', el);
+  let running = true;
+  pushOverlay(el, { onClose: () => { running = false; Cam.stop(video); } });
+  $('[data-close]', el).onclick = () => closeTop();
+  let torchOn = false;
+  $('[data-torch]', el).onclick = async e => { torchOn = !torchOn; await Cam.torch(torchOn); e.currentTarget.classList.toggle('on', torchOn); };
+  (async () => {
+    try { await Cam.start(video); if (!running) return Cam.stop(video); if (Cam.canTorch()) $('[data-torch]', el).hidden = false; }
+    catch (e) { msg.textContent = camError(e); }
+  })();
+  $('[data-shot]', el).onclick = async () => {
+    if (!video.videoWidth) return;
+    msg.textContent = '處理中…';
+    const c = await hiResSnapshot(video);
+    await closeTop();
+    onShot(c);
+  };
+}
+function openPhotoViewer(photo, { onMain, onDelete, isMain } = {}) {
+  const el = document.createElement('div');
+  el.className = 'overlay';
+  el.innerHTML = `<div class="cam" style="background:#000">
+      <div class="cam-top"><button class="icon-btn" data-close aria-label="關閉">${ic('x')}</button><div class="grow"></div></div>
+      <img alt="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain" src="${photo.thumb}">
+      ${onMain || onDelete ? `<div class="cam-bottom"><div class="row" style="gap:8px">
+        ${onMain ? `<button class="btn grow" data-main ${isMain ? 'disabled' : ''}>${isMain ? '目前的主圖' : '設為主圖'}</button>` : ''}
+        ${onDelete ? `<button class="btn ghost grow" data-del>${ic('trash')}刪除</button>` : ''}</div></div>` : ''}
+    </div>`;
+  pushOverlay(el);
+  const img = $('img', el);
+  (photo.full ? Promise.resolve(photo.full) : Photos.get(photo.id)).then(d => { if (d) img.src = d; });
+  $('[data-close]', el).onclick = () => closeTop();
+  const m = $('[data-main]', el); if (m) m.onclick = async () => { await closeTop(); onMain(); };
+  const d = $('[data-del]', el); if (d) d.onclick = async () => { await closeTop(); onDelete(); };
+}
+
+/* =========================================================
+   逛店查重複：掃條碼或用名稱搜尋
+   ========================================================= */
+function openShopScan() {
+  openScanner({ title: '掃條碼查詢', hint: '對準盒子上的條碼', capture: showLookup, extra: { label: '用名稱搜尋', fn: openNameSearch } });
+}
+function showLookup(code) {
+  const render = ctx => {
+    const its = itemsByBarcode(code), ws = S.wants.filter(w => (w.barcodes || []).includes(code));
+    let h = `<div class="card row">${ic('barcode')}<b class="num" style="font-size:18px">${esc(code)}</b></div>`;
+    if (its.length) {
+      const n = its.reduce((s, it) => s + it.copies.length, 0);
+      h += `<div class="banner" style="background:var(--ok-soft)">${ic('check').replace('<svg', '<svg style="color:var(--ok)"')}<div class="grow"><b style="font-size:18px">已擁有 ×${n}</b><div class="small muted">${S.settings.lexicon === 'plain' ? '收藏裡已經有了' : '館藏裡已經有了'}，確定還要再買嗎？</div></div></div>
+        <div class="list">${its.map(it => itemRow(it)).join('')}</div>`;
+    }
+    if (ws.length) h += `<div class="banner info">${ic('heart')}<div class="grow"><b>在${esc(L('wants'))}裡</b><div class="small muted">就是你想找的那一款！</div></div></div><div class="list">${ws.map(wantRow).join('')}</div>`;
+    if (!its.length && !ws.length) h += `<div class="card empty" style="padding:20px">${ic('search')}<div><b>還沒有收藏過這個條碼</b></div><div class="small">也不在${esc(L('wants'))}裡。不同版本可能條碼不同，可以用名稱再搜尋確認。</div></div>`;
+    h += `<button class="btn primary block" data-again>${ic('scan')}繼續掃描</button><div class="spacer"></div>
+      <div class="row" style="gap:8px">
+        ${its.length ? `<button class="btn grow" data-addc>${ic('plus')}${esc(L('addCopy'))}</button>` : `<button class="btn grow" data-new>${ic('plus')}${esc(L('add'))}</button>`}
+        ${ws.length ? '' : `<button class="btn grow" data-addwant>${ic('heart')}加入${esc(L('wantsShort'))}</button>`}
+      </div><div class="spacer"></div>
+      <div class="row" style="gap:8px"><button class="btn grow" data-name>${ic('search')}用名稱搜尋</button><button class="btn grow" data-google>${ic('globe')}Google 搜尋</button></div>`;
+    ctx.setBody(h);
+    bindRows(ctx.el);
+    ctx.$$('[data-want]').forEach(el => el.onclick = () => openWant(el.dataset.want));
+    ctx.$('[data-again]').onclick = async () => { await closeTop(); openShopScan(); };
+    const nb = ctx.$('[data-new]'); if (nb) nb.onclick = async () => { await closeTop(); openItemForm({ prefill: { fields: { barcodes: [code] } } }); };
+    const ac = ctx.$('[data-addc]'); if (ac) ac.onclick = () => openCopyForm(its[0].id, null);
+    const wb = ctx.$('[data-addwant]'); if (wb) wb.onclick = async () => { await closeTop(); openWantForm({ prefill: { barcodes: [code] } }); };
+    ctx.$('[data-name]').onclick = async () => { await closeTop(); openNameSearch(); };
+    ctx.$('[data-google]').onclick = () => googleSearch(code);
+  };
+  sheet({ title: '查詢結果', full: true, onMount: render, refresh: render });
+}
+function openNameSearch() {
+  let q = '';
+  const draw = ctx => {
+    const t = q.trim();
+    const its = t ? S.items.filter(it => itemMatches(it, t)).slice(0, 40) : [];
+    const ws = t ? S.wants.filter(w => [w.name, workById(w.workId)?.zh, w.character, w.brand].filter(Boolean).join(' ').toLowerCase().includes(t.toLowerCase())).slice(0, 20) : [];
+    ctx.$('[data-res]').innerHTML = !t ? `<div class="hint" style="margin:4px 2px">輸入名稱、作品或角色，看看是不是已經有了。</div>`
+      : (its.length ? `<div class="section-title"><span>已擁有</span><span class="count">${its.length} 款</span></div><div class="list">${its.map(it => itemRow(it)).join('')}</div>` : `<div class="card small" style="margin-top:8px"><b>${esc(L('items'))}裡沒有符合「${esc(t)}」的</b></div>`) +
+        (ws.length ? `<div class="section-title"><span>在${esc(L('wants'))}</span></div><div class="list">${ws.map(wantRow).join('')}</div>` : '');
+    bindRows(ctx.el);
+    ctx.$$('[data-want]').forEach(el => el.onclick = () => openWant(el.dataset.want));
+  };
+  sheet({
+    title: '用名稱搜尋', full: true,
+    body: `<label class="search" style="margin-top:0">${ic('search')}<input type="search" placeholder="例如：獨角獸、吉伊卡哇" data-s></label><div data-res></div>`,
+    onMount: ctx => {
+      const s = ctx.$('[data-s]');
+      setTimeout(() => s.focus(), 250);
+      s.addEventListener('input', e => { if (e.isComposing) return; q = s.value; draw(ctx); });
+      s.addEventListener('compositionend', () => { q = s.value; draw(ctx); });
+      draw(ctx);
+    },
+    refresh: ctx => draw(ctx),
+  });
+}
+
+/* =========================================================
+   登錄入館：方式選擇
+   ========================================================= */
+function openAddChooser() {
+  const needKey = !AI.key ? '<span class="chip warn" style="margin-left:6px">需要 AI 金鑰</span>' : '';
+  const row = (k, icon, t, d) => `<button class="setting-row card-like" data-k="${k}">${ic(icon, 'lead')}<span class="grow"><div style="font-weight:700">${t}</div><div class="small muted">${d}</div></span>${ic('chev', 'chev')}</button>`;
+  sheet({
+    title: L('add'),
+    body: row('cam', 'camera', `AI 拍照登錄${needKey}`, '拍盒子正面＋背面，AI 讀出名稱、作品、系列、角色') +
+      row('album', 'image', '從相簿選照片', AI.key ? '用 1～3 張舊照片登錄一件，AI 辨識' : '用 1～3 張舊照片登錄一件') +
+      row('multi', 'layers', `AI 一次登錄多件${needKey}`, '一張照片裡有好幾件（例如整排扭蛋），AI 分別框出、裁切') +
+      row('batch', 'images', '批次匯入舊照片', `一次選很多張，先放進「${L('drafts')}」，之後逐筆確認`) +
+      row('manual', 'edit', '手動登錄', '自己填寫資料') +
+      `<div class="hint" style="margin:6px 2px 0">照片只有在使用 AI 時才會傳給 Google 辨識。</div>`,
+    onMount: ctx => {
+      ctx.$$('[data-k]').forEach(b => b.onclick = async () => {
+        const k = b.dataset.k;
+        if ((k === 'cam' || k === 'multi') && !AI.key) {
+          if (await confirmDialog('這個功能需要先在館務室設定 Gemini 金鑰。現在要去設定嗎？', { ok: '去設定' })) { await closeAll(); openAISettings(); }
+          return;
+        }
+        await closeTop();
+        if (k === 'cam') openAICamera();
+        else if (k === 'album') albumSingle();
+        else if (k === 'multi') openMultiSource();
+        else if (k === 'batch') batchImport();
+        else openItemForm({});
+      });
+    },
+  });
+}
+
+/* ---------- AI 拍照（單件：正面＋背面） ---------- */
+function openAICamera() {
+  if (!navigator.onLine) return toast('AI 辨識需要連網');
+  let two = true;
+  const shots = [];
+  const el = document.createElement('div');
+  el.className = 'overlay';
+  el.innerHTML = `<div class="cam">
+      <video muted playsinline></video>
+      <div class="cam-top"><button class="icon-btn" data-close aria-label="關閉">${ic('x')}</button>
+        <div class="grow"><div class="seg"><button data-n="2" class="on">正面＋背面</button><button data-n="1">只拍一張</button></div></div>
+        <button class="icon-btn" data-torch aria-label="手電筒" hidden>${ic('flash')}</button></div>
+      <div class="cam-bottom">
+        <div class="cam-msg" data-msg></div>
+        <div class="small" style="text-align:center;opacity:.8;margin-top:4px">照片會傳送給 Google 辨識・只拍玩具本身</div>
+        <div class="row" style="justify-content:center;gap:18px;margin-top:6px">
+          <button class="btn ghost sm" data-redo hidden style="width:92px">重拍</button>
+          <button class="shutter" data-shot aria-label="拍照"></button>
+          <span style="width:92px"></span>
+        </div>
+      </div>
+    </div>`;
+  const video = $('video', el), msg = $('[data-msg]', el), redo = $('[data-redo]', el);
+  let running = true;
+  const free = () => { shots.forEach(c => { c.width = c.height = 0; }); shots.length = 0; };
+  pushOverlay(el, { onClose: () => { running = false; Cam.stop(video); } });
+  const step = () => {
+    $$('[data-n]', el).forEach(b => b.classList.toggle('on', (b.dataset.n === '2') === two));
+    msg.innerHTML = !two ? '盒子正面朝上，<b>品名清楚入鏡</b>' : !shots.length ? '<b>第 1 張：盒子正面</b>，讓品名清楚入鏡' : '<b>第 2 張：盒子背面</b>（有條碼和說明文字的那面）';
+    redo.hidden = !(two && shots.length);
+  };
+  $$('[data-n]', el).forEach(b => b.onclick = () => { two = b.dataset.n === '2'; free(); step(); });
+  redo.onclick = () => { free(); step(); };
+  $('[data-close]', el).onclick = () => closeTop();
+  let torchOn = false;
+  $('[data-torch]', el).onclick = async e => { torchOn = !torchOn; await Cam.torch(torchOn); e.currentTarget.classList.toggle('on', torchOn); };
+  step();
+  (async () => {
+    try { await Cam.start(video); if (!running) return Cam.stop(video); if (Cam.canTorch()) $('[data-torch]', el).hidden = false; }
+    catch (e) { msg.textContent = camError(e); }
+  })();
+  let busy = false;
+  $('[data-shot]', el).onclick = async () => {
+    if (!video.videoWidth || busy) return;
+    busy = true;
+    const c = await hiResSnapshot(video);
+    busy = false;
+    shots.push(c);
+    if (navigator.vibrate) navigator.vibrate(30);
+    if (two && shots.length === 1) { step(); return; }
+    const imgs = [...shots]; shots.length = 0;
+    await closeTop();
+    runAISingle(imgs);
+  };
+}
+async function albumSingle() {
+  const files = (await pickImageFiles(true)).slice(0, 3);
+  if (!files.length) return;
+  const guess = await readExifDate(files[0]);
+  const canvases = [];
+  for (const f of files) { try { canvases.push(await fileToCanvas(f, 2400)); } catch (e) {} }
+  if (!canvases.length) return toast('無法讀取照片');
+  if (AI.key && navigator.onLine) runAISingle(canvases, { guess });
+  else {
+    const photos = canvases.map(c => { const p = makePhoto(c); c.width = c.height = 0; return p; });
+    openItemForm({ prefill: { photos, copy: guess ? { date: guess, dateGuess: guess } : {} } });
+    if (AI.key) toast('目前沒有網路，先手動填寫');
+  }
+}
+async function runAISingle(canvases, { guess = null } = {}) {
+  const ctx = sheet({ title: 'AI 辨識中', body: `<div class="card row"><span class="spin"></span><div class="grow"><b>正在辨識…</b><div class="small muted">照片已傳送給 Google，通常需要 5 到 20 秒</div></div></div>` });
+  const codesP = Promise.all(canvases.map(detectBarcodesIn));
+  let r;
+  try { r = await aiIdentifySingle(canvases); }
+  catch (e) {
+    if (!isOpen(ctx)) return;
+    ctx.setTitle('辨識失敗');
+    ctx.setBody(`<div class="banner">${ic('alert')}<div class="grow">${esc(e.zh || 'AI 發生錯誤')}</div></div><div class="small muted">照片還在，可以不用 AI、直接手動填寫。</div>`);
+    ctx.setFoot(`<button class="btn" data-retry>再試一次</button><button class="btn primary" data-manual>手動填寫</button>`);
+    ctx.$('[data-retry]').onclick = async () => { await closeTop(); runAISingle(canvases, { guess }); };
+    ctx.$('[data-manual]').onclick = async () => {
+      const codes = (await codesP).flat().map(x => x.code);
+      const photos = canvases.map(c => makePhoto(c));
+      await closeTop();
+      openItemForm({ prefill: { photos, fields: { barcodes: [...new Set(codes)] }, copy: guess ? { date: guess, dateGuess: guess } : {} } });
+    };
+    return;
+  }
+  const codes = [...new Set((await codesP).flat().map(x => x.code))];
+  if (!isOpen(ctx)) return;
+  const photos = [cropBox(canvases[0], r.box) || makePhoto(canvases[0]), ...canvases.slice(1).map(c => makePhoto(c))];
+  canvases.forEach(c => { c.width = c.height = 0; });
+  await closeTop();
+  openItemForm({
+    prefill: { photos, fields: { ...r, barcodes: codes, _ai: true }, copy: guess ? { date: guess, dateGuess: guess } : {} },
+    aiInfo: { loose: r.loose },
+  });
+}
+function cropBox(canvas, box) {
+  if (!Array.isArray(box) || box.length !== 4) return null;
+  let [y0, x0, y1, x1] = box.map(Number);
+  if (![y0, x0, y1, x1].every(isFinite) || y1 <= y0 || x1 <= x0) return null;
+  if ((y1 - y0) * (x1 - x0) > 960000) return null; // 幾乎整張就不裁
+  const W = canvas.width, H = canvas.height;
+  const px = (x1 - x0) * .05, py = (y1 - y0) * .05;
+  x0 = Math.max(0, x0 - px); x1 = Math.min(1000, x1 + px); y0 = Math.max(0, y0 - py); y1 = Math.min(1000, y1 + py);
+  const c = toCanvas(canvas, x0 / 1000 * W, y0 / 1000 * H, (x1 - x0) / 1000 * W, (y1 - y0) / 1000 * H, 1400);
+  const ph = makePhoto(c); c.width = c.height = 0;
+  return ph;
+}
+function assignBarcodes(items, codes) {
+  const pairs = [];
+  for (const c of codes) items.forEach((it, i) => {
+    const b = it.box; if (!Array.isArray(b) || b.length !== 4) return;
+    const [y0, x0, y1, x1] = b;
+    const inside = c.cx >= x0 && c.cx <= x1 && c.cy >= y0 && c.cy <= y1;
+    pairs.push({ c, i, s: inside ? -1e9 + (x1 - x0) * (y1 - y0) : Math.hypot(c.cx - (x0 + x1) / 2, c.cy - (y0 + y1) / 2) });
+  });
+  pairs.sort((a, b) => a.s - b.s);
+  const used = new Set(), done = new Set();
+  for (const p of pairs) {
+    if (used.has(p.c.code) || done.has(p.i) || p.s > 260) continue;
+    items[p.i].barcodes = [p.c.code]; used.add(p.c.code); done.add(p.i);
+  }
+}
+
+/* ---------- AI 一次多件 ---------- */
+async function openMultiSource() {
+  const r = await choiceDialog('一次登錄多件', '把玩具排開、不要互相遮住，名稱朝上。', [
+    { value: 'cam', label: '拍一張照片', icon: 'camera', primary: true },
+    { value: 'album', label: '從相簿選一張', icon: 'image' },
+  ]);
+  if (r === 'cam') openPhotoCamera(c => runMulti([{ canvas: c, guess: null }]), { title: '一次登錄多件', hint: '從正上方拍，玩具排開不要重疊' });
+  else if (r === 'album') {
+    const f = (await pickImageFiles(false))[0]; if (!f) return;
+    try { runMulti([{ canvas: await fileToCanvas(f, 2400), guess: await readExifDate(f) }]); } catch (e) { toast('無法讀取照片'); }
+  }
+}
+// 把一批照片交給 AI，拆成多筆「待整理」
+async function runMulti(srcs) {
+  const drafts = srcs.map(s => {
+    const ph = makePhoto(s.canvas);
+    return { id: uid(), photos: [{ id: ph.id, thumb: ph.thumb }], mainPhoto: ph.id, _full: ph.full, fields: {}, guessDate: s.guess, ai: 'pending', createdAt: Date.now() };
+  });
+  for (let i = 0; i < drafts.length; i++) {
+    const dr = drafts[i];
+    await Photos.put(dr.photos[0].id, dr._full); delete dr._full;
+    await SrcImgs.put(dr.id, srcs[i].canvas.toDataURL('image/jpeg', .85));
+    srcs[i].canvas.width = srcs[i].canvas.height = 0;
+    S.drafts.push(dr);
+  }
+  commit();
+  await processPending(drafts.map(d => d.id));
+}
+async function processPending(ids) {
+  ids = ids.filter(id => S.drafts.some(d => d.id === id && d.ai === 'pending'));
+  if (!ids.length) return openDrafts();
+  if (!AI.key || !navigator.onLine) { toast(AI.key ? '目前沒有網路，先放在待整理' : '已放進待整理'); return openDrafts(); }
+  let stopped = false;
+  const ctx = sheet({ title: 'AI 辨識中', body: '', onClose: () => { stopped = true; } });
+  const status = (n, msg = '') => ctx.setBody(`<div class="card row"><span class="spin"></span><div class="grow"><b>正在辨識 ${n} / ${ids.length} 張</b><div class="small muted">${msg || '照片已傳送給 Google，關掉這個畫面會停止，剩下的之後可以繼續'}</div></div></div>`);
+  let done = 0, made = 0, err = null;
+  for (let i = 0; i < ids.length && !stopped; i += 3) {
+    const group = ids.slice(i, i + 3);
+    status(done + 1);
+    const canvases = [];
+    for (const id of group) {
+      const dr = S.drafts.find(d => d.id === id);
+      const src = await SrcImgs.get(id) || (dr && await Photos.get(dr.mainPhoto));
+      canvases.push(src ? await dataToCanvas(src, 2400).catch(() => null) : null);
+    }
+    const ok = canvases.map((c, k) => c ? k : -1).filter(k => k >= 0);
+    let result;
+    try { result = await aiIdentifyBatch(ok.map(k => canvases[k])); }
+    catch (e) { err = e; canvases.forEach(c => c && (c.width = c.height = 0)); break; }
+    for (let j = 0; j < ok.length; j++) {
+      const k = ok[j], id = group[k], canvas = canvases[k];
+      const dr = S.drafts.find(d => d.id === id); if (!dr) continue;
+      const items = (result[j] || []).slice(0, 20);
+      if (!items.length) { dr.ai = 'done'; dr.aiNote = 'AI 沒有找到玩具'; }
+      else {
+        const codes = await detectBarcodesIn(canvas);
+        if (items.length === 1 && codes.length) items[0].barcodes = codes.map(c => c.code).slice(0, 1); else assignBarcodes(items, codes);
+        const at = S.drafts.indexOf(dr);
+        const news = items.map((it, m) => {
+          const ph = items.length > 1 || it.box ? cropBox(canvas, it.box) : null;
+          const nd = { id: uid(), photos: [], mainPhoto: null, fields: { ...it, _ai: true }, loose: it.loose, guessDate: dr.guessDate, ai: 'done', createdAt: dr.createdAt + m };
+          if (ph) { nd._ph = ph; nd.photos = [{ id: ph.id, thumb: ph.thumb }]; nd.mainPhoto = ph.id; }
+          else { nd.photos = [...dr.photos]; nd.mainPhoto = dr.mainPhoto; }
+          return nd;
+        });
+        for (const nd of news) if (nd._ph) { await Photos.put(nd._ph.id, nd._ph.full); delete nd._ph; }
+        S.drafts.splice(at, 1, ...news);
+        if (news.every(nd => !nd.photos.some(p => p.id === dr.mainPhoto))) for (const p of dr.photos) await Photos.del(p.id);
+        made += news.length;
+      }
+      await SrcImgs.del(id);
+      canvas.width = canvas.height = 0;
+      done++;
+    }
+    save();
+  }
+  commit();
+  if (isOpen(ctx)) await closeTop();
+  const left = S.drafts.filter(d => d.ai === 'pending').length;
+  if (err) toast(err.code === 'quota' ? `免費額度暫時用完了，剩下 ${left} 張之後可以在待整理繼續` : `${err.zh || 'AI 發生錯誤'}，剩下 ${left} 張之後可以繼續`);
+  else if (stopped) toast(`已停止，剩下 ${left} 張之後可以繼續`);
+  else toast(`辨識完成，產生 ${made} 筆待整理`);
+  openDrafts();
+}
+
+/* ---------- 批次匯入 ---------- */
+async function batchImport() {
+  const files = await pickImageFiles(true);
+  if (!files.length) return;
+  if (files.length > 60) toast('一次最多 60 張，只匯入前 60 張');
+  const list = files.slice(0, 60);
+  let useAI = false;
+  if (AI.key) {
+    const r = await choiceDialog(`匯入 ${list.length} 張照片`, '要讓 AI 辨識嗎？', [
+      { value: 'ai', label: 'AI 辨識', sub: `一張照片有好幾件會自動拆開。免費方案每天有次數限制，用完了隔天可以繼續。`, icon: 'sparkle', primary: true },
+      { value: 'plain', label: '先存照片，之後再整理', sub: '不傳給 Google，每張建成一筆待整理', icon: 'inbox' },
+    ]);
+    if (!r) return;
+    useAI = r === 'ai';
+  }
+  const ctx = sheet({ title: '匯入中', body: `<div class="card row"><span class="spin"></span><b data-st>讀取照片…</b></div>` });
+  const ids = [];
+  for (let i = 0; i < list.length; i++) {
+    if (isOpen(ctx)) ctx.$('[data-st]').textContent = `讀取照片 ${i + 1} / ${list.length}`;
+    try {
+      const f = list[i];
+      const guess = await readExifDate(f);
+      const c = await fileToCanvas(f, 2400);
+      const ph = makePhoto(c);
+      await Photos.put(ph.id, ph.full);
+      const dr = { id: uid(), photos: [{ id: ph.id, thumb: ph.thumb }], mainPhoto: ph.id, fields: {}, guessDate: guess, ai: useAI ? 'pending' : 'none', createdAt: Date.now() + i };
+      if (useAI) await SrcImgs.put(dr.id, c.toDataURL('image/jpeg', .85));
+      c.width = c.height = 0;
+      S.drafts.push(dr); ids.push(dr.id);
+    } catch (e) { console.warn(e); }
+  }
+  commit();
+  if (isOpen(ctx)) await closeTop();
+  if (useAI) processPending(ids);
+  else { toast(`已匯入 ${ids.length} 張到${L('drafts')}`); openDrafts(); }
+}
+
+/* ---------- 待整理 ---------- */
+async function removeDraft(id) {
+  const dr = S.drafts.find(d => d.id === id); if (!dr) return;
+  S.drafts = S.drafts.filter(d => d.id !== id);
+  for (const p of dr.photos || []) if (!photoUsedElsewhere(p.id, id)) await Photos.del(p.id);
+  await SrcImgs.del(id);
+  save();
+}
+function openDrafts() {
+  const render = ctx => {
+    const pend = S.drafts.filter(d => d.ai === 'pending');
+    if (!S.drafts.length) {
+      ctx.setBody(`<div class="card empty">${ic('check')}<div><b>都整理完了</b></div></div>`);
+      ctx.setFoot('');
+      return;
+    }
+    ctx.setBody(`<div class="hint" style="margin:0 2px 10px">點一筆打開，確認資料後${esc(L('add'))}；整理完的會自動從這裡消失。</div>
+      ${pend.length ? `<div class="banner info">${ic('sparkle')}<div class="grow small"><b>${pend.length} 張還沒辨識</b>${AI.key ? '' : '（需要 AI 金鑰，也可以直接點開手動填寫）'}</div>${AI.key ? '<button class="btn sm primary" data-ai>AI 辨識</button>' : ''}</div>` : ''}
+      <div class="list">${S.drafts.map(d => `<div class="item tap" data-d="${d.id}">${thumbHTML({ ...d, name: d.fields?.name || '?' })}
+        <div class="main"><div class="name">${esc(d.fields?.name || '未命名')}</div>
+          <div class="meta">${d.ai === 'pending' ? '<span class="chip">未辨識</span>' : d.fields?._ai ? `<span class="chip info">${d.loose ? 'AI 推測' : 'AI'}</span>` : ''}${d.fields?.workZh ? `<span>${esc(d.fields.workZh)}</span>` : ''}${d.guessDate ? `<span>照片 ${fmtDate(d.guessDate)}</span>` : ''}${d.aiNote ? `<span>${esc(d.aiNote)}</span>` : ''}</div></div>
+        <button class="icon-btn ghost" data-del="${d.id}" aria-label="刪除">${ic('trash')}</button></div>`).join('')}</div>`);
+    ctx.setFoot(`<button class="btn danger" data-clear>全部刪除</button><button class="btn primary" data-first>從第一筆開始</button>`);
+    const open = id => {
+      const d = S.drafts.find(x => x.id === id); if (!d) return;
+      openItemForm({
+        draftId: d.id,
+        prefill: { photos: d.photos.map(p => ({ ...p })), fields: { ...d.fields }, copy: d.guessDate ? { date: d.guessDate, dateGuess: d.guessDate } : {} },
+        aiInfo: { loose: d.loose },
+      });
+    };
+    ctx.$$('[data-d]').forEach(el => el.onclick = e => { if (e.target.closest('[data-del]')) return; open(el.dataset.d); });
+    ctx.$('[data-first]').onclick = () => open(S.drafts[0].id);
+    ctx.$$('[data-del]').forEach(b => b.onclick = async e => { e.stopPropagation(); await removeDraft(b.dataset.del); commit(); toast('已刪除這筆'); });
+    ctx.$('[data-clear]').onclick = async () => {
+      if (!await confirmDialog(`刪除全部 ${S.drafts.length} 筆${esc(L('drafts'))}？照片也會一起刪除。`, { ok: '全部刪除', danger: true })) return;
+      for (const d of [...S.drafts]) await removeDraft(d.id);
+      commit();
+    };
+    const ai = ctx.$('[data-ai]'); if (ai) ai.onclick = async () => { await closeTop(); processPending(pend.map(d => d.id)); };
+  };
+  sheet({ title: L('drafts'), full: true, onMount: render, refresh: render });
+}
+
+/* =========================================================
+   Gemini (AI)
+   ========================================================= */
+const AI = { key: null, model: null };
+async function loadAI() { try { const v = await IDB.get('ai'); if (v) Object.assign(AI, v); } catch (e) {} }
+async function saveAI() { await IDB.set('ai', { key: AI.key, model: AI.model }); }
+const aiReady = () => !!(AI.key && navigator.onLine);
+class AIError extends Error {
+  constructor(code, detail = '') { super(code); this.code = code; this.detail = detail; }
+  get zh() {
+    return ({
+      nokey: '還沒有設定 AI 金鑰', offline: '目前沒有網路', timeout: 'AI 回應太久，請再試一次', network: '連不上 AI 服務',
+      quota: '免費額度暫時用完了，請等一下再試', badkey: '金鑰無效，請到館務室檢查', model: '找不到可用的 AI 模型，請到館務室重新測試金鑰',
+      parse: 'AI 的回應看不懂，請再試一次', bad: 'AI 拒絕了這個請求', http: 'AI 服務發生錯誤', nosearch: '這個金鑰目前不能使用 AI 上網搜尋',
+    })[this.code] || 'AI 發生錯誤';
+  }
+}
+const GEM = 'https://generativelanguage.googleapis.com/v1beta';
+function parseLooseJSON(t) {
+  t = String(t || '').trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
+  try { return JSON.parse(t); } catch (e) {}
+  const a = t.indexOf('{'), b = t.lastIndexOf('}');
+  if (a >= 0 && b > a) { try { return JSON.parse(t.slice(a, b + 1)); } catch (e) {} }
+  throw new AIError('parse');
+}
+async function geminiCall(parts, { model = AI.model, timeout = 60000, json = true, tools = null, raw = false } = {}) {
+  if (!AI.key) throw new AIError('nokey');
+  if (!navigator.onLine) throw new AIError('offline');
+  const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), timeout);
+  let res;
+  try {
+    res = await fetch(`${GEM}/models/${model || 'gemini-2.5-flash'}:generateContent`, {
+      method: 'POST', signal: ctrl.signal,
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': AI.key },
+      body: JSON.stringify({ contents: [{ role: 'user', parts }], ...(tools ? { tools } : {}), generationConfig: { temperature: .2, ...(json && !tools ? { responseMimeType: 'application/json' } : {}) } }),
+    });
+  } catch (e) { throw new AIError(e.name === 'AbortError' ? 'timeout' : 'network'); } finally { clearTimeout(t); }
+  if (res.status === 429) throw new AIError('quota');
+  if (res.status === 404) throw new AIError('model');
+  if (!res.ok) {
+    const j = await res.json().catch(() => ({}));
+    const msg = j.error?.message || '';
+    if (/api key|API_KEY|permission/i.test(msg) || res.status === 401 || res.status === 403) throw new AIError(tools && res.status === 403 ? 'nosearch' : 'badkey', msg);
+    if (/quota|exhausted|limit/i.test(msg)) throw new AIError('quota', msg);
+    if (tools && /search|tool|ground/i.test(msg)) throw new AIError('nosearch', msg);
+    throw new AIError(res.status === 400 ? 'bad' : 'http', msg);
+  }
+  const j = await res.json();
+  const cand = j.candidates?.[0];
+  const text = (cand?.content?.parts || []).filter(p => !p.thought).map(p => p.text || '').join('');
+  if (!text) throw new AIError('parse');
+  const data = json ? parseLooseJSON(text) : text;
+  return raw ? { data, grounding: cand?.groundingMetadata || null } : data;
+}
+const imgPart = canvas => ({ inline_data: { mime_type: 'image/jpeg', data: canvas.toDataURL('image/jpeg', .85).split(',')[1] } });
+const aiImg = c => toCanvas(c, 0, 0, c.width, c.height, 1600);
+
+const AI_ITEM_RULES = () => `- name：台灣常用的繁體中文名稱，保留系列、比例等規格，例如「RG 1/144 獨角獸鋼彈」「吉伊卡哇 大頭公仔 小八」。
+- work_zh／work_en：作品（IP）的台灣常用中文名與官方英文名，例如 鋼彈／Gundam、變形金剛／Transformers、寶可夢／Pokémon、吉伊卡哇／Chiikawa。不屬於特定作品就給空字串。
+- series：系列名稱，例如「HG」「Studio Series」「盲盒 第 3 彈」。
+- character：角色名稱。
+- brand：品牌或廠商，例如 BANDAI、TAKARA TOMY、POP MART、海洋堂。
+- type：只能從這些選一個：${S.types.map(t => t.name).join('、')}
+- edition：版本，例如 一般版、限定版、特典、隱藏版、會場限定；看不出來就給空字串。
+- boxed：照片中是有包裝盒、吊卡或泡殼的商品就 true；只有玩具本體、沒有包裝就 false。
+- 有包裝時以包裝上的文字為準；沒有包裝時只能看外型，系列和版本通常無法確定，請留空。不確定的欄位給空字串，不要亂猜。`;
+function mapAIItem(x) {
+  return {
+    name: String(x.name || '').trim().slice(0, 80), workZh: String(x.work_zh || '').trim(), workEn: String(x.work_en || '').trim(),
+    seriesName: String(x.series || '').trim(), character: String(x.character || '').trim(), brand: String(x.brand || '').trim(),
+    typeName: String(x.type || '').trim(), edition: String(x.edition || '').trim(), box: x.box, loose: x.boxed === false || x.confidence === 'low',
+  };
+}
+async function aiIdentifySingle(canvases) {
+  const small = canvases.slice(0, 3).map(aiImg);
+  const prompt = `這是同一件玩具收藏品的照片${small.length > 1 ? `（共 ${small.length} 張，第 1 張通常是正面，第 2 張是背面或其他角度）` : ''}。請辨識它，只回傳 JSON：
+{"name":"","work_zh":"","work_en":"","series":"","character":"","brand":"","type":"","edition":"","boxed":true,"confidence":"high|medium|low","box":[ymin,xmin,ymax,xmax]}
+規則：
+${AI_ITEM_RULES()}
+- box：第 1 張照片中這件商品（含包裝）的範圍，座標是 0 到 1000 的整數。`;
+  try {
+    const r = await geminiCall([{ text: prompt }, ...small.map(imgPart)], { timeout: 90000 });
+    return mapAIItem(r);
+  } finally { small.forEach(c => { c.width = c.height = 0; }); }
+}
+async function aiIdentifyBatch(canvases) {
+  const small = canvases.map(aiImg);
+  const prompt = `你會看到 ${small.length} 張照片，每張可能有一件或好幾件玩具收藏品。請逐張找出每一件玩具，只回傳 JSON：
+{"photos":[{"index":1,"items":[{"name":"","work_zh":"","work_en":"","series":"","character":"","brand":"","type":"","edition":"","boxed":true,"confidence":"high|medium|low","box":[ymin,xmin,ymax,xmax]}]}]}
+規則：
+- index 是照片順序（從 1 開始），每張照片都要列出；照片裡沒有玩具就給空的 items。
+- 同一件玩具只列一次；不要列出背景、櫃子、手或其他非玩具物品。
+${AI_ITEM_RULES()}
+- box：這件玩具在該張照片中的範圍，座標是 0 到 1000 的整數。`;
+  try {
+    const r = await geminiCall([{ text: prompt }, ...small.map(imgPart)], { timeout: 120000 });
+    const out = small.map(() => []);
+    for (const p of r.photos || []) { const k = (+p.index || 0) - 1; if (k >= 0 && k < out.length) out[k] = (p.items || []).filter(x => x && x.name).map(mapAIItem); }
+    return out;
+  } finally { small.forEach(c => { c.width = c.height = 0; }); }
+}
+async function aiWorkEnglish(zh) {
+  const r = await geminiCall([{ text: `「${zh}」是一個玩具／動漫／遊戲作品（IP）的台灣常用名稱。請給它的官方英文名稱，只回傳 JSON：{"en":"英文名","sure":true}。不確定就把 sure 設為 false；完全不知道就回傳 {"en":"","sure":false}。` }], { timeout: 20000 });
+  return { en: String(r.en || '').trim(), sure: !!r.sure };
+}
+
+/* ---------- AI 查原價（上網搜尋） ---------- */
+async function openPriceLookup(it) {
+  const w = workById(it.workId), s = seriesById(it.seriesId);
+  const q = [w.id === W_OTH ? '' : w.zh, it.name].filter(Boolean).join(' ');
+  if (!AI.key) {
+    const r = await choiceDialog('查原價', 'AI 上網查原價需要 Gemini 金鑰。也可以直接用 Google 搜尋。', [{ value: 'g', label: 'Google 搜尋', icon: 'search', primary: true }, { value: 'set', label: '去設定 AI 金鑰', icon: 'sparkle' }]);
+    if (r === 'g') googleSearch(`${q} 定價`); else if (r === 'set') openAISettings();
+    return;
+  }
+  const ctx = sheet({ title: 'AI 查原價', body: `<div class="card row"><span class="spin"></span><div class="grow"><b>AI 正在上網搜尋…</b><div class="small muted">通常需要 10 到 30 秒</div></div></div>` });
+  const info = [`商品：${it.name}`, w.id !== W_OTH && `作品：${w.zh}${w.en ? `（${w.en}）` : ''}`, s && `系列：${s.name}`, it.character && `角色：${it.character}`, it.brand && `品牌：${it.brand}`, it.edition && `版本：${it.edition}`, (it.barcodes || [])[0] && `條碼（JAN/EAN）：${it.barcodes[0]}`].filter(Boolean).join('\n');
+  let r;
+  try {
+    r = await geminiCall([{ text: `請用 Google 搜尋這件玩具商品的「官方原始定價」：廠商發售時公布的定價（日本商品通常是日圓含稅價）。不是二手價、代購價或店家售價。
+${info}
+只回傳一段 JSON，不要其他文字：
+{"found":true,"price_text":"例如 ¥1,650（含稅）","currency":"JPY","amount":1650,"release":"發售年月，例如 2023-05","note":"一句話說明依據","confidence":"high|medium|low"}
+找不到可靠資料就回傳 {"found":false,"note":"原因"}。` }], { tools: [{ google_search: {} }], json: true, raw: true, timeout: 60000 });
+  } catch (e) {
+    if (!isOpen(ctx)) return;
+    ctx.setBody(`<div class="banner">${ic('alert')}<div class="grow">${esc(e.zh || 'AI 發生錯誤')}${e.code === 'nosearch' || e.code === 'bad' ? '<div class="small muted">免費方案可能不支援 AI 上網搜尋，或今天的搜尋次數用完了。</div>' : ''}</div></div>`);
+    ctx.setFoot(`<button class="btn" data-x>關閉</button><button class="btn primary" data-g>${ic('search')}改用 Google 搜尋</button>`);
+    ctx.$('[data-x]').onclick = () => closeTop();
+    ctx.$('[data-g]').onclick = () => googleSearch(`${(it.barcodes || [])[0] || q} 定價`);
+    return;
+  }
+  if (!isOpen(ctx)) return;
+  const d = r.data || {};
+  const src = (r.grounding?.groundingChunks || []).map(c => c.web).filter(Boolean).map(x => ({ uri: x.uri, title: x.title || x.uri })).slice(0, 5);
+  if (!d.found || !d.price_text) {
+    ctx.setBody(`<div class="card"><b>AI 沒有找到可靠的原始定價</b><div class="small muted" style="margin-top:4px">${esc(d.note || '')}</div></div>`);
+    ctx.setFoot(`<button class="btn" data-x>關閉</button><button class="btn primary" data-g>${ic('search')}改用 Google 搜尋</button>`);
+  } else {
+    ctx.setBody(`<div class="card"><div class="small muted">AI 查到的原始定價</div><div style="font-size:24px;font-weight:800;margin:4px 0">${esc(d.price_text)}</div>
+        ${d.release ? `<div class="small">發售：${esc(d.release)}</div>` : ''}${d.note ? `<div class="small muted" style="margin-top:4px">${esc(d.note)}</div>` : ''}
+        ${d.confidence === 'low' ? '<div class="chip warn" style="margin-top:6px">AI 不太確定</div>' : ''}</div>
+      ${src.length ? `<div class="section-title"><span>來源</span></div><div class="card src-list">${src.map(x => `<a href="${esc(x.uri)}" target="_blank" rel="noopener">${esc(x.title)}</a>`).join('')}</div>` : ''}
+      <div class="hint" style="margin:0 2px">AI 查到的價格偶爾會錯，請點來源確認後再存。</div>`);
+    ctx.setFoot(`<button class="btn" data-g>${ic('search')}Google</button><button class="btn primary" data-save>存成原始定價</button>`);
+    ctx.$('[data-save]').onclick = async () => { const t = itemById(it.id); if (t) { t.origPrice = { text: d.price_text, at: todayISO(), src }; commit(); } await closeTop(); toast('已存成原始定價'); };
+  }
+  const x = ctx.$('[data-x]'); if (x) x.onclick = () => closeTop();
+  ctx.$('[data-g]').onclick = () => googleSearch(`${(it.barcodes || [])[0] || q} 定價`);
+}
+
+/* ---------- 金鑰設定 ---------- */
+async function geminiModels() {
+  const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 15000);
+  let res;
+  try { res = await fetch(`${GEM}/models?pageSize=200`, { headers: { 'x-goog-api-key': AI.key }, signal: ctrl.signal }); }
+  catch (e) { throw new AIError(e.name === 'AbortError' ? 'timeout' : 'network'); } finally { clearTimeout(t); }
+  if (!res.ok) throw new AIError(res.status === 429 ? 'quota' : 'badkey');
+  const j = await res.json();
+  const ver = n => (n.match(/gemini-(\d+(?:\.\d+)?)/) || [])[1] * 1 || 0;
+  return (j.models || [])
+    .filter(m => (m.supportedGenerationMethods || []).includes('generateContent'))
+    .map(m => m.name.replace(/^models\//, ''))
+    .filter(n => /^gemini-\d+(\.\d+)?-flash(-lite)?(-latest)?$/.test(n))
+    .sort((a, b) => ver(b) - ver(a) || (a.includes('lite') - b.includes('lite')));
+}
+async function geminiSetup(onStatus) {
+  onStatus('檢查金鑰…');
+  const models = await geminiModels();
+  if (!models.length) throw new AIError('model');
+  let lastErr = null;
+  for (const m of models.slice(0, 6)) {
+    onStatus(`測試 ${m}…`);
+    try {
+      const r = await geminiCall([{ text: '只回傳 JSON：{"ok":true}' }], { model: m, timeout: 20000 });
+      if (r && r.ok) { AI.model = m; await saveAI(); return { model: m }; }
+    } catch (e) { lastErr = e; if (e.code === 'badkey') throw e; }
+  }
+  throw lastErr || new AIError('model');
+}
+function openAISettings() {
+  const render = ctx => {
+    ctx.setBody(`
+      <div class="banner info">${ic('sparkle')}<div class="small">AI 辨識使用 Google Gemini。<b>只有在你按下 AI 相關按鈕時，照片才會傳送給 Google</b>。免費方案的資料可能被 Google 用來改善產品，請只拍玩具本身。</div></div>
+      <div class="field"><label>Gemini API 金鑰</label>
+        <div class="row" style="gap:6px"><input class="input grow" type="password" data-key autocomplete="off" spellcheck="false" placeholder="貼上金鑰" value="${esc(AI.key || '')}"><button class="icon-btn" data-eye aria-label="顯示">${ic('eye')}</button></div>
+        <div class="hint">金鑰只存在這支手機，不會出現在 GitHub，也不會包含在備份檔裡。<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">到 Google AI Studio 取得金鑰</a></div></div>
+      <button class="btn primary block" data-test>${ic('check')}儲存並測試</button>
+      <div class="hint" data-status style="margin:8px 2px 0">${AI.model ? `目前使用模型：${esc(AI.model)}` : '尚未設定'}</div>
+      <div class="card small" style="margin-top:14px"><b>AI 會用在這些地方</b><ul class="cl"><li>拍照或選照片後辨識名稱、作品、系列、角色</li><li>一張照片有好幾件時自動拆開、裁切</li><li>新作品查英文名（用來產生代號）</li><li>上網查原始定價（免費方案不一定能用）</li></ul></div>
+      ${AI.key ? `<div class="hr"></div><button class="btn danger block" data-del>${ic('trash')}刪除金鑰</button>` : ''}`);
+    const key = ctx.$('[data-key]'), st = ctx.$('[data-status]');
+    ctx.$('[data-eye]').onclick = () => { key.type = key.type === 'password' ? 'text' : 'password'; };
+    ctx.$('[data-test]').onclick = async () => {
+      const v = key.value.trim();
+      if (!v) return toast('請先貼上金鑰');
+      const btn = ctx.$('[data-test]'); btn.disabled = true;
+      AI.key = v; await saveAI();
+      try {
+        const r = await geminiSetup(s => { st.textContent = s; });
+        st.innerHTML = `<span style="color:var(--ok);font-weight:600">可以使用！</span>模型：${esc(r.model)}`;
+        toast('AI 辨識已啟用'); renderMain();
+      } catch (e) { st.innerHTML = `<span style="color:var(--danger)">${esc(e.zh || '測試失敗')}</span>`; }
+      btn.disabled = false;
+    };
+    const d = ctx.$('[data-del]');
+    if (d) d.onclick = async () => { if (!await confirmDialog('刪除 AI 金鑰？AI 功能會停用。', { ok: '刪除', danger: true })) return; AI.key = null; AI.model = null; await saveAI(); render(ctx); renderMain(); };
+  };
+  sheet({ title: 'AI 辨識', full: true, onMount: render });
+}
+
+/* =========================================================
+   館務室（設定）
+   ========================================================= */
+function renderSettings(v) {
+  setTop(L('settings'));
+  const last = S.settings.lastBackupAt;
+  const row = (icon, title, val, attr) => `<button class="setting-row" ${attr}>${ic(icon, 'lead')}<span class="grow">${title}</span><span class="val">${val || ''}</span>${ic('chev', 'chev')}</button>`;
+  const sw = (key, title, desc) => `<div class="switch-row" style="padding:12px 14px"><div class="grow"><div>${title}</div><div class="small muted">${desc}</div></div><label class="switch"><input type="checkbox" data-sw="${key}" ${key === 'lexicon' ? (S.settings.lexicon !== 'plain' ? 'checked' : '') : S.settings[key] ? 'checked' : ''}><span></span></label></div>`;
+  v.innerHTML = `
+    <div class="section-title"><span>收藏整理</span></div>
+    <div class="list">
+      ${row('tag', '作品與代號', `${S.works.length} 個`, 'data-go="works"')}
+      ${row('box', '類型', `${S.types.length} 個`, 'data-go="types"')}
+      ${row('globe', '購買管道', `${S.channels.length} 個`, 'data-go="channels"')}
+      ${row('star', L('condition'), `${S.conditions.length} 個`, 'data-go="conditions"')}
+      ${row('pin', `${L('display')}與${L('storage')}`, `${S.places.length} 個`, 'data-go="places"')}
+    </div>
+    <div class="section-title"><span>顯示</span></div>
+    <div class="list">
+      ${sw('lexicon', '博物館用字', '館藏、入館、展區…；關閉後改用一般用字')}
+      ${sw('guest', L('guest'), '隱藏所有價格和總值，適合拿給朋友看')}
+    </div>
+    <div class="section-title"><span>AI 辨識</span></div>
+    <div class="list">${row('sparkle', 'Gemini 金鑰與設定', AI.key ? (AI.model ? '已啟用' : '尚未測試') : '未設定', 'data-go="ai"')}</div>
+    <div class="section-title"><span>資料</span></div>
+    <div class="list">
+      ${row('chart', L('stats'), '', 'data-go="stats"')}
+      ${row('backup', `${L('backup')}與還原`, last ? `上次 ${fmtDateShort(toISO(new Date(last)))}` : '尚未備份', 'data-go="backup"')}
+      ${row('shield', '資料保存狀態', '', 'data-go="storage"')}
+    </div>
+    <div class="section-title"><span>其他</span></div>
+    <div class="list">
+      ${row('help', L('guide'), '', 'data-go="help"')}
+      ${row('sparkle', L('news'), `v${APP_VERSION}`, 'data-go="log"')}
+      ${row('trash', '清除所有資料', '', 'data-go="wipe"')}
+    </div>
+    <div class="small muted" style="text-align:center;margin:18px 0 6px">Toyseum v${APP_VERSION}・資料只存在這支手機</div>`;
+  const go = {
+    works: openWorks, types: () => openListEditor('types'), channels: () => openListEditor('channels'), conditions: () => openListEditor('conditions'),
+    places: openPlaces, ai: openAISettings, stats: openStats, backup: openBackup, storage: openStorage, help: () => openOnboarding(true),
+    log: () => openChangelog(false), wipe: wipeAll,
+  };
+  $$('[data-go]', v).forEach(b => b.onclick = () => go[b.dataset.go]());
+  $$('[data-sw]', v).forEach(s => s.onchange = () => {
+    if (s.dataset.sw === 'lexicon') S.settings.lexicon = s.checked ? 'museum' : 'plain';
+    else S.settings[s.dataset.sw] = s.checked;
+    commit();
+  });
+}
+
+/* ---------- 作品與代號 ---------- */
+function openWorks() {
+  const render = ctx => {
+    ctx.setBody(`<div class="hint" style="margin:0 2px 10px">每個作品有一個 3 碼代號，典藏編號會用它開頭，例如 GUN-0012-1。</div>
+      <div class="list">${sortedWorks().map(w => {
+        const its = S.items.filter(it => it.workId === w.id);
+        return `<button class="setting-row" data-w="${w.id}"><span class="code lg">${esc(w.code)}</span><span class="grow"><div style="font-weight:600">${esc(w.zh)}</div><div class="small muted">${esc(w.en || '')}${w.en ? '・' : ''}${its.length} 款・${its.reduce((s, it) => s + it.copies.length, 0)} 件・${S.series.filter(s => s.workId === w.id).length} 個系列</div></span>${ic('chev', 'chev')}</button>`;
+      }).join('')}</div>`);
+    ctx.setFoot(`<button class="btn primary block" data-add>${ic('plus')}新增作品</button>`);
+    ctx.$$('[data-w]').forEach(b => b.onclick = () => editWork(b.dataset.w));
+    ctx.$('[data-add]').onclick = () => openWorkCreate({});
+  };
+  sheet({ title: '作品與代號', full: true, onMount: render, refresh: render });
+}
+function editWork(id) {
+  const render = ctx => {
+    const w = byId(S.works, id); if (!w) return closeTop();
+    const its = S.items.filter(it => it.workId === w.id);
+    const ser = S.series.filter(s => s.workId === w.id);
+    ctx.setTitle(w.zh);
+    ctx.setBody(`<div class="card row"><span class="code lg">${esc(w.code)}</span><div class="grow small muted">${its.length} 款・${its.reduce((s, it) => s + it.copies.length, 0)} 件${w.lastNo ? `・目前最大款號 ${pad4(w.lastNo)}` : ''}</div>
+        ${w.system ? '' : `<button class="btn sm" data-code>${ic('edit')}改代號</button>`}</div>
+      ${w.system ? '<div class="hint" style="margin:-4px 2px 12px">「其他」用來放不屬於任何作品的收藏，代號固定為 OTH。</div>' : `
+      <div class="field"><label>作品中文名</label><input class="input" data-zh value="${esc(w.zh)}"></div>
+      <div class="field"><label>英文名</label><input class="input" data-en value="${esc(w.en || '')}"></div>
+      <button class="btn block" data-savename>儲存名稱</button>`}
+      <div class="section-title"><span>系列</span><span class="count">${ser.length} 個</span></div>
+      <div class="list">${ser.map(s => `<div class="edit-row"><span class="grow">${esc(s.name)} <span class="muted small">${S.items.filter(it => it.seriesId === s.id).length} 款</span></span>
+        <button class="icon-btn" data-sedit="${s.id}" aria-label="改名">${ic('edit')}</button><button class="icon-btn" data-sdel="${s.id}" aria-label="刪除">${ic('trash')}</button></div>`).join('')}
+        <button class="setting-row" data-sadd style="color:var(--accent);font-weight:600">${ic('plus', 'lead')}<span class="grow">新增系列</span></button></div>
+      ${w.system ? '' : `<div class="hr"></div><button class="btn danger block" data-del>${ic('trash')}刪除作品</button>`}`);
+    const cb = ctx.$('[data-code]');
+    if (cb) cb.onclick = async () => {
+      const code = await askWorkCode('', { exceptId: w.id, current: w.code });
+      if (!code || code === w.code) return;
+      const nCopies = its.reduce((s, it) => s + it.copies.length, 0);
+      const ex = its[0]?.copies[0] ? `（例如 ${copyCode(its[0], its[0].copies[0])} → ${code}-${pad4(its[0].no)}-${its[0].copies[0].n}）` : '';
+      if (!await doubleConfirm(`把「${esc(w.zh)}」的代號從 <span class="code">${w.code}</span> 改成 <span class="code">${code}</span>？<br><br>將更新 <b>${its.length} 款、${nCopies} 件</b>收藏的編號${ex}。`,
+        `確定修改嗎？盒子上已經貼的舊編號標籤（${w.code}-…）需要重貼。`)) return;
+      w.code = code; commit(); toast(`代號已改為 ${code}，${nCopies} 件編號已更新`);
+    };
+    const sn = ctx.$('[data-savename]');
+    if (sn) sn.onclick = () => {
+      const zh = ctx.$('[data-zh]').value.trim(), en = ctx.$('[data-en]').value.trim();
+      if (!zh) return toast('請輸入中文名');
+      if (S.works.some(x => x.id !== w.id && normName(x.zh) === normName(zh))) return toast('已經有同名的作品');
+      w.zh = zh; w.en = en; commit(); toast('已儲存（代號不會因為改名而改變）');
+    };
+    ctx.$$('[data-sedit]').forEach(b => b.onclick = async () => { const s = seriesById(b.dataset.sedit); const n = (await promptDialog('系列名稱', { value: s.name }) || '').trim(); if (n) { s.name = n; commit(); } });
+    ctx.$$('[data-sdel]').forEach(b => b.onclick = async () => {
+      const s = seriesById(b.dataset.sdel); const used = S.items.filter(it => it.seriesId === s.id);
+      if (!await confirmDialog(`刪除系列「${esc(s.name)}」？${used.length ? `${used.length} 款收藏會變成「未指定系列」。` : ''}`, { ok: '刪除', danger: true })) return;
+      used.forEach(it => { it.seriesId = ''; }); S.series = S.series.filter(x => x.id !== s.id); commit();
+    });
+    ctx.$('[data-sadd]').onclick = async () => { const n = (await promptDialog('新增系列', { placeholder: '例如：HG 系列' }) || '').trim(); if (n) { S.series.push({ id: uid(), workId: w.id, name: n }); commit(); } };
+    const del = ctx.$('[data-del]');
+    if (del) del.onclick = async () => {
+      if (its.length) return toast(`這個作品還有 ${its.length} 款收藏，請先把它們換到其他作品`);
+      if (!await confirmDialog(`刪除作品「${esc(w.zh)}」（${w.code}）？`, { ok: '刪除', danger: true })) return;
+      S.works = S.works.filter(x => x.id !== w.id); S.series = S.series.filter(s => s.workId !== w.id);
+      S.wants.forEach(x => { if (x.workId === w.id) x.workId = W_OTH; });
+      commit(); await closeTop();
+    };
+  };
+  sheet({ title: '', full: true, onMount: render, refresh: render });
+}
+
+/* ---------- 類型、管道、品相 ---------- */
+const LISTS = {
+  types: { title: () => '類型', ph: '例如：鐵道模型', used: id => S.items.filter(x => x.typeId === id).length + S.wants.filter(x => x.typeId === id).length, clear: id => { [...S.items, ...S.wants].forEach(x => { if (x.typeId === id) x.typeId = ''; }); } },
+  channels: { title: () => '購買管道', ph: '例如：日本旅遊', used: id => S.items.reduce((s, it) => s + it.copies.filter(c => c.channelId === id).length, 0) + S.wants.filter(x => x.channelId === id).length, clear: id => { S.items.forEach(it => it.copies.forEach(c => { if (c.channelId === id) c.channelId = ''; })); S.wants.forEach(x => { if (x.channelId === id) x.channelId = ''; }); } },
+  conditions: { title: () => L('condition'), ph: '例如：盒損', used: id => S.items.reduce((s, it) => s + it.copies.filter(c => c.conditionId === id).length, 0), clear: id => { S.items.forEach(it => it.copies.forEach(c => { if (c.conditionId === id) c.conditionId = ''; })); } },
+};
+function openListEditor(key) {
+  const cfg = LISTS[key];
+  const render = ctx => {
+    const arr = S[key];
+    ctx.setBody(`<div class="list">${arr.map((x, i) => `<div class="edit-row"><span class="grow">${esc(x.name)} <span class="muted small">${cfg.used(x.id)} 筆使用</span></span>
+        <button class="icon-btn" data-up="${i}" ${i === 0 ? 'disabled' : ''} aria-label="上移">${ic('up')}</button>
+        <button class="icon-btn" data-down="${i}" ${i === arr.length - 1 ? 'disabled' : ''} aria-label="下移">${ic('down')}</button>
+        <button class="icon-btn" data-edit="${x.id}" aria-label="改名">${ic('edit')}</button>
+        <button class="icon-btn" data-del="${x.id}" aria-label="刪除">${ic('trash')}</button></div>`).join('')}</div>`);
+    ctx.setFoot(`<button class="btn primary block" data-add>${ic('plus')}新增</button>`);
+    ctx.$$('[data-up]').forEach(b => b.onclick = () => { moveIn(arr, +b.dataset.up, -1); commit(); });
+    ctx.$$('[data-down]').forEach(b => b.onclick = () => { moveIn(arr, +b.dataset.down, 1); commit(); });
+    ctx.$$('[data-edit]').forEach(b => b.onclick = async () => { const x = byId(arr, b.dataset.edit); const n = (await promptDialog('改名', { value: x.name }) || '').trim(); if (n) { x.name = n; commit(); } });
+    ctx.$$('[data-del]').forEach(b => b.onclick = async () => {
+      const x = byId(arr, b.dataset.del); const n = cfg.used(x.id);
+      if (!await confirmDialog(`刪除「${esc(x.name)}」？${n ? `目前有 ${n} 筆使用中，刪除後會變成未填。` : ''}`, { ok: '刪除', danger: true })) return;
+      cfg.clear(x.id); S[key] = S[key].filter(y => y.id !== x.id); commit();
+    });
+    ctx.$('[data-add]').onclick = async () => {
+      const n = (await promptDialog(`新增${cfg.title()}`, { placeholder: cfg.ph }) || '').trim();
+      if (!n) return;
+      if (arr.some(x => x.name === n)) return toast('已經有了');
+      arr.push({ id: uid(), name: n }); commit();
+    };
+  };
+  sheet({ title: cfg.title(), full: true, onMount: render, refresh: render });
+}
+function openPlaces() {
+  const render = ctx => {
+    const used = id => S.items.reduce((s, it) => s + it.copies.filter(c => c.placeId === id).length, 0);
+    const sec = kind => S.places.filter(p => p.kind === kind);
+    const rows = kind => sec(kind).map(p => `<div class="edit-row"><span class="grow">${esc(p.name)} <span class="muted small">${used(p.id)} 件</span></span>
+        <button class="icon-btn" data-up="${p.id}" aria-label="上移">${ic('up')}</button>
+        <button class="icon-btn" data-edit="${p.id}" aria-label="改名">${ic('edit')}</button>
+        <button class="icon-btn" data-del="${p.id}" aria-label="刪除">${ic('trash')}</button></div>`).join('');
+    ctx.setBody(`<div class="hint" style="margin:0 2px 10px">在櫃子裡展示的放「${L('display')}」，裝箱收起來的放「${L('storage')}」。</div>
+      <div class="section-title"><span>${L('display')}</span></div><div class="list">${rows('display')}<button class="setting-row" data-add="display" style="color:var(--accent);font-weight:600">${ic('plus', 'lead')}<span class="grow">新增${L('display')}</span></button></div>
+      <div class="section-title"><span>${L('storage')}</span></div><div class="list">${rows('storage')}<button class="setting-row" data-add="storage" style="color:var(--accent);font-weight:600">${ic('plus', 'lead')}<span class="grow">新增${L('storage')}</span></button></div>`);
+    ctx.$$('[data-up]').forEach(b => b.onclick = () => {
+      const p = byId(S.places, b.dataset.up); const same = S.places.filter(x => x.kind === p.kind); const i = same.indexOf(p);
+      if (i <= 0) return; const j = S.places.indexOf(same[i - 1]), k = S.places.indexOf(p); [S.places[j], S.places[k]] = [S.places[k], S.places[j]]; commit();
+    });
+    ctx.$$('[data-edit]').forEach(b => b.onclick = async () => { const p = byId(S.places, b.dataset.edit); const n = (await promptDialog('改名', { value: p.name }) || '').trim(); if (n) { p.name = n; commit(); } });
+    ctx.$$('[data-del]').forEach(b => b.onclick = async () => {
+      const p = byId(S.places, b.dataset.del); const n = used(p.id);
+      if (!await confirmDialog(`刪除「${esc(p.name)}」？${n ? `裡面有 ${n} 件會變成「未指定位置」。` : ''}`, { ok: '刪除', danger: true })) return;
+      S.items.forEach(it => it.copies.forEach(c => { if (c.placeId === p.id) c.placeId = ''; })); S.places = S.places.filter(x => x.id !== p.id); commit();
+    });
+    ctx.$$('[data-add]').forEach(b => b.onclick = async () => {
+      const kind = b.dataset.add;
+      const n = (await promptDialog(`新增${kind === 'storage' ? L('storage') : L('display')}`, { placeholder: kind === 'storage' ? '例如：床底收納箱 A' : '例如：書房玻璃櫃 第 2 層' }) || '').trim();
+      if (n) { S.places.push({ id: uid(), name: n, kind }); commit(); }
+    });
+  };
+  sheet({ title: `${L('display')}與${L('storage')}`, full: true, onMount: render, refresh: render });
+}
+
+/* ---------- storage status ---------- */
+async function requestPersist() {
+  S.settings.persistAsked = true; save();
+  try { if (navigator.storage?.persist) return await navigator.storage.persist(); } catch (e) {}
+  return false;
+}
+async function openStorage() {
+  let persisted = false, est = null;
+  try { persisted = await navigator.storage?.persisted?.(); } catch (e) {}
+  try { est = await navigator.storage?.estimate?.(); } catch (e) {}
+  const ctx = sheet({
+    title: '資料保存狀態',
+    body: `<div class="card">
+        <div class="row">${ic('shield')}<b class="grow">${persisted ? '已啟用永久保存' : '尚未啟用永久保存'}</b>${persisted ? '<span class="chip ok">安全</span>' : '<span class="chip warn">注意</span>'}</div>
+        <p class="small muted" style="margin:8px 0 0">${persisted ? '手機空間不足時，Chrome 不會自動清掉這裡的資料。' : '手機空間不足時，Chrome 有可能清掉這裡的資料。把這個網頁「加到主畫面」後再按下方按鈕，通常就會核准。'}</p>
+        ${persisted ? '' : `<button class="btn primary block" style="margin-top:10px" data-ask>申請永久保存</button>`}
+      </div>
+      <div class="card small">
+        <div>${S.items.length} 款・${S.items.reduce((s, it) => s + it.copies.length, 0)} 件・${L('wants')} ${S.wants.length} 項・${L('drafts')} ${S.drafts.length} 筆</div>
+        ${est ? `<div class="muted">使用空間約 ${(est.usage / 1048576).toFixed(1)} MB</div>` : ''}
+      </div>
+      <div class="banner info">${ic('alert')}<div class="small">清除 Chrome 的網站資料、移除 Chrome 或換手機時，資料都會不見。請定期備份。</div></div>`,
+  });
+  const a = ctx.$('[data-ask]');
+  if (a) a.onclick = async () => { const ok = await requestPersist(); await closeTop(); toast(ok ? '已啟用永久保存' : '瀏覽器暫時沒有核准，先加到主畫面再試'); };
+}
+async function wipeAll() {
+  if (!await confirmDialog('確定要清除<b>所有</b>收藏、照片和設定嗎？這個動作無法復原，建議先備份。', { ok: '下一步', danger: true })) return;
+  const v = await promptDialog('最後確認', { label: '請輸入「清除」兩個字', ok: '清除所有資料' });
+  if ((v || '').trim() !== '清除') return toast('已取消');
+  await Photos.clear();
+  S = defaultState(); S.settings.onboarded = true; S.settings.seenVersion = APP_VERSION; commit(); toast('已清除所有資料');
+}
+
+/* =========================================================
+   典藏備份與還原
+   ========================================================= */
+const b64 = { enc: u8 => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); }, dec: s => Uint8Array.from(atob(s), c => c.charCodeAt(0)) };
+async function deriveKey(pw, salt) {
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 250000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+function validState(d) { return d && Array.isArray(d.items) && Array.isArray(d.works) && d.settings; }
+async function buildBackup(pw) {
+  const payload = JSON.stringify({ state: S, photos: await Photos.all() });
+  const head = { app: APP_ID, format: 1, version: APP_VERSION, exportedAt: new Date().toISOString() };
+  if (!pw) return `{"app":"${APP_ID}","format":1,"version":${JSON.stringify(APP_VERSION)},"exportedAt":${JSON.stringify(head.exportedAt)},"encrypted":false,"data":${payload}}`;
+  const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const key = await deriveKey(pw, salt);
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(payload)));
+  return JSON.stringify({ ...head, encrypted: true, salt: b64.enc(salt), iv: b64.enc(iv), data: b64.enc(ct) });
+}
+function verNewer(a, b) { const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number); for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); } return false; }
+async function readBackup(text, askPw) {
+  let obj; try { obj = JSON.parse(text); } catch (e) { throw new Error('這不是有效的備份檔'); }
+  if (obj.app !== APP_ID) throw new Error(obj.app === 'home-pantry' ? '這是家庭庫存的備份檔，不能還原到 Toyseum' : '這不是 Toyseum 的備份檔');
+  let data = obj.data;
+  if (obj.encrypted) {
+    const pw = await askPw(); if (pw == null) throw new Error('cancel');
+    try {
+      const key = await deriveKey(pw, b64.dec(obj.salt));
+      const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: b64.dec(obj.iv) }, key, b64.dec(obj.data));
+      data = JSON.parse(new TextDecoder().decode(pt));
+    } catch (e) { throw new Error('密碼錯誤，無法解開備份'); }
+  }
+  return { state: data.state, photos: data.photos || {}, version: obj.version || '1.0.0', newer: verNewer(obj.version || '1.0.0', APP_VERSION) };
+}
+function download(text, filename) {
+  const blob = new Blob([text], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function openBackup() {
+  const render = ctx => {
+    const last = S.settings.lastBackupAt;
+    ctx.setBody(`
+      <div class="card"><div class="row">${ic('backup')}<div class="grow"><b>${last ? `上次備份：${fmtDate(toISO(new Date(last)))}` : '還沒有備份過'}</b>
+        <div class="small muted">超過 ${S.settings.backupDays} 天沒備份，${esc(L('home'))}會提醒</div></div></div></div>
+      <div class="switch-row" style="padding:6px 2px 12px;border:0"><div class="grow"><div>${ic('lock').replace('<svg', '<svg style="width:16px;height:16px;vertical-align:-2px"')} 用密碼加密備份</div><div class="small muted">忘記密碼就無法還原，請記好</div></div><label class="switch"><input type="checkbox" data-enc><span></span></label></div>
+      <div class="hint" style="margin:0 2px 10px">備份包含所有收藏、${esc(L('wants'))}、${esc(L('drafts'))}和照片，不包含 AI 金鑰。</div>
+      <button class="btn primary block" data-share>${ic('backup')}備份並分享到雲端硬碟…</button>
+      <div class="hint" style="margin:6px 2px 10px">會跳出分享選單，選「雲端硬碟」即可存起來。</div>
+      <button class="btn block" data-dl>${ic('in')}下載備份檔到手機</button>
+      <div class="hint" style="margin:6px 2px 0">存在手機的「下載」資料夾。手機壞掉時會一起不見，建議另外存到雲端。</div>
+      <div class="field" style="margin-top:14px"><label>備份提醒間隔（天）</label><input class="input" type="text" inputmode="numeric" value="${S.settings.backupDays}" data-days></div>
+      <div class="hr" style="margin:18px 0"></div>
+      <button class="btn block" data-restore>${ic('restore')}從備份檔還原</button>
+      <input type="file" accept=".json,.txt,application/json,text/plain" data-file hidden>
+      <div class="hint" style="margin:6px 2px 0">還原會用備份檔<b>取代</b>目前手機裡的所有資料。</div>`);
+    const days = ctx.$('[data-days]');
+    days.onchange = () => { const n = parseInt(days.value, 10); if (n >= 1 && n <= 365) { S.settings.backupDays = n; save(); toast('已儲存'); } else days.value = S.settings.backupDays; };
+    const enc = ctx.$('[data-enc]');
+    const make = async () => {
+      let pw = null;
+      if (enc.checked) {
+        pw = await promptDialog('設定備份密碼', { type: 'password', label: '密碼', hint: '還原時需要輸入這組密碼' });
+        if (!pw) return null;
+        const pw2 = await promptDialog('再輸入一次密碼', { type: 'password' });
+        if (pw !== pw2) { toast('兩次密碼不一樣'); return null; }
+      }
+      toast('正在產生備份檔…');
+      return buildBackup(pw);
+    };
+    const name = ext => `toyseum-backup_${todayISO()}.${ext}`;
+    const markDone = () => { S.settings.lastBackupAt = Date.now(); commit(); };
+    ctx.$('[data-share]').onclick = async () => {
+      const text = await make(); if (!text) return;
+      const file = new File([text], name('txt'), { type: 'text/plain' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try { await navigator.share({ files: [file], title: 'Toyseum 備份' }); markDone(); toast('備份完成'); }
+        catch (e) { if (e.name !== 'AbortError') { toast('分享失敗，改用下載'); download(text, name('json')); markDone(); } }
+      } else { download(text, name('json')); markDone(); toast('這台手機不支援分享，已改為下載'); }
+    };
+    ctx.$('[data-dl]').onclick = async () => { const text = await make(); if (!text) return; download(text, name('json')); markDone(); toast('已下載備份檔'); };
+    const fi = ctx.$('[data-file]');
+    ctx.$('[data-restore]').onclick = () => { fi.value = ''; fi.click(); };
+    fi.onchange = async () => {
+      const f = fi.files[0]; if (!f) return;
+      try {
+        const bk = await readBackup(await f.text(), () => promptDialog('輸入備份密碼', { type: 'password' }));
+        const data = bk.state;
+        if (!validState(data)) throw new Error('備份檔內容不完整');
+        const nPh = Object.keys(bk.photos).length;
+        const nCopies = data.items.reduce((s, it) => s + (it.copies || []).length, 0);
+        if (!await confirmDialog(`${bk.newer ? `<b>這個備份來自較新的版本 v${esc(bk.version)}</b>，目前是 v${APP_VERSION}，部分資料可能無法顯示，建議先更新 App。<br><br>` : ''}備份裡有 ${data.items.length} 款、${nCopies} 件收藏${nPh ? `、${nPh} 張照片` : ''}。確定要用它取代目前的資料（${S.items.length} 款）嗎？`, { ok: '還原', danger: true })) return;
+        await Photos.clear();
+        for (const [id, d] of Object.entries(bk.photos)) await Photos.put(id, d);
+        const keepSeen = S.settings.seenVersion;
+        S = migrate(data); S.settings.onboarded = true; S.settings.seenVersion = keepSeen || APP_VERSION; commit();
+        await closeAll(); toast('還原完成');
+      } catch (e) { if (e.message !== 'cancel') toast(e.message); }
+    };
+  };
+  sheet({ title: `${L('backup')}與還原`, full: true, onMount: render });
+}
+
+/* =========================================================
+   導覽、館訊
+   ========================================================= */
+function openOnboarding(fromSettings = false) {
+  const pages = [
+    { img: true, t: '歡迎來到 Toyseum', p: ['這是你的私人玩具博物館：記錄每件收藏的作品、系列、角色、購買資料、保存狀態和照片。', '每件收藏都有<b>典藏編號</b>，例如 <span class="code">GUN-0012-1</span>：作品代號－款號－件號。同一款買了好幾件，會是 -1、-2、-3。'] },
+    { icon: 'camera', t: '登錄入館', p: ['按下方金色的 <b>＋</b>：可以拍盒子正面和背面讓 AI 辨識、從相簿選舊照片、一張照片一次登錄多件，或批次匯入很多張舊照片。', 'AI 需要在「館務室」貼上 Gemini 金鑰。<b>只有按下 AI 相關按鈕時</b>，照片才會傳給 Google。'] },
+    { icon: 'scan', t: '逛店查重複', p: ['在大廳按「掃條碼查詢」，馬上知道是不是<b>已擁有</b>、有幾件，或在不在徵集清單裡。', '沒有條碼也可以用名稱搜尋。'] },
+    { icon: 'heart', t: '徵集清單', p: ['想要的、已預購、付了訂金的都記在這。快到貨或超過預計日期時，大廳會提醒你。', '這是網頁 App，<b>不會主動跳手機通知</b>，打開時才看得到提醒。', '到貨後按一下就能登錄入館，資料自動帶入。'] },
+    { icon: 'shield', t: '資料只在這支手機裡', p: ['所有資料只存在這支手機的 Chrome 裡，不會上傳到任何地方。', '<b>清除 Chrome 資料、移除 Chrome 或換手機，資料就會不見。</b>請到「館務室 → 典藏備份」定期備份到雲端硬碟。', '建議把這個網頁「加到主畫面」，用起來就像 App。'] },
+  ];
+  let i = 0;
+  const render = ctx => {
+    const pg = pages[i];
+    ctx.setBody(`<div class="onb"><div class="ill">${pg.img ? '<img alt="" src="./icon.png">' : ic(pg.icon)}</div><h3>${pg.t}</h3>${pg.p.map(x => `<p>${x}</p>`).join('')}
+      <div class="dots">${pages.map((_, k) => `<i class="${k === i ? 'on' : ''}"></i>`).join('')}</div></div>`);
+    ctx.setFoot(`${i > 0 ? '<button class="btn" data-prev>上一步</button>' : ''}<button class="btn primary" data-next>${i === pages.length - 1 ? '開館' : '下一步'}</button>`);
+    const pv = ctx.$('[data-prev]'); if (pv) pv.onclick = () => { i--; render(ctx); };
+    ctx.$('[data-next]').onclick = async () => {
+      if (i < pages.length - 1) { i++; render(ctx); return; }
+      S.settings.onboarded = true; S.settings.seenVersion = APP_VERSION; commit();
+      await closeTop();
+      if (!fromSettings) requestPersist();
+    };
+  };
+  sheet({ title: fromSettings ? L('guide') : '', onMount: render, onClose: () => { if (!S.settings.onboarded) { S.settings.onboarded = true; S.settings.seenVersion = APP_VERSION; save(); } } });
+}
+const CHANGELOG = [
+  {
+    v: '1.0.0', date: '2026-11-08', items: [
+      '第一版 Toyseum：以家庭庫存 App 為基礎改寫成玩具收藏館。',
+      '館藏：作品 → 系列 → 角色三層；一款一筆，底下分件記錄購買日期、價格、管道、保存狀態、封存狀態、配件、展區／庫房。',
+      '典藏編號：作品代號－款號－件號（例如 GUN-0012-1）。新作品依英文名自動建議 3 碼代號；改代號會一併更新所有編號；有空號時新增會問你要不要補。',
+      '登錄入館：AI 拍照（正面＋背面）、從相簿選照片、一張照片一次登錄多件、批次匯入舊照片到「待整理」，照片拍攝日期會當作購買日期的參考。',
+      '逛店查重複：掃條碼或用名稱搜尋，馬上知道是否已擁有、是否在徵集清單。',
+      '徵集清單：預算、預購價、訂金、發售日、預計到貨；快到貨時大廳提醒，到貨一鍵入館。',
+      '館務年報：依作品、年度、類型、購買管道統計件數與花費。',
+      'AI 查原價（上網搜尋，附來源連結）、Google 搜尋條碼。',
+      '參觀模式隱藏所有金額；館務室可切換博物館用字／一般用字。',
+    ],
+  },
+];
+function openChangelog(justUpdated = false) {
+  sheet({
+    title: justUpdated ? `已更新到 v${APP_VERSION}` : L('news'),
+    body: CHANGELOG.map(c => `<div class="section-title" style="margin-top:${c === CHANGELOG[0] ? 4 : 18}px"><span>v${c.v}</span><span class="count">${c.date}</span></div>
+      <div class="card"><ul class="cl">${c.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul></div>`).join(''),
+    foot: `<button class="btn primary block" data-ok>${justUpdated ? '知道了' : '關閉'}</button>`,
+    onMount: ctx => { ctx.$('[data-ok]').onclick = () => closeTop(); },
+    onClose: () => { if (S.settings.seenVersion !== APP_VERSION) { S.settings.seenVersion = APP_VERSION; save(); } },
+  });
+}
+
+/* =========================================================
+   Boot
+   ========================================================= */
+function migrate(d) {
+  const base = defaultState();
+  d.settings = { ...base.settings, ...(d.settings || {}) };
+  for (const k of ['works', 'series', 'types', 'conditions', 'channels', 'places', 'items', 'wants', 'drafts']) if (!Array.isArray(d[k])) d[k] = base[k];
+  if (!d.works.some(w => w.id === W_OTH)) d.works.unshift(base.works[0]);
+  d.works.forEach(w => { w.lastNo = Math.max(w.lastNo || 0, ...d.items.filter(it => it.workId === w.id).map(it => it.no || 0)); });
+  d.items.forEach(it => {
+    it.copies = Array.isArray(it.copies) ? it.copies : [];
+    it.barcodes = it.barcodes || []; it.tags = it.tags || []; it.photos = it.photos || [];
+    if (!d.works.some(w => w.id === it.workId)) it.workId = W_OTH;
+    it.lastN = Math.max(it.lastN || 0, ...it.copies.map(c => c.n || 0));
+  });
+  d.wants.forEach(w => { w.barcodes = w.barcodes || []; w.photos = w.photos || []; w.status = w.status || 'want'; });
+  d.drafts.forEach(x => { x.photos = x.photos || []; x.fields = x.fields || {}; });
+  d.schema = 1;
+  return d;
+}
+async function boot() {
+  await loadAI();
+  try {
+    const saved = await IDB.get('state');
+    S = saved ? migrate(saved) : defaultState();
+    if (!saved) await IDB.set('state', S);
+  } catch (e) {
+    console.error(e);
+    S = defaultState();
+    toast('無法使用手機儲存空間，資料不會被保存');
+  }
+  history.replaceState({ ov: 0 }, '');
+  renderMain();
+  if (!S.settings.onboarded) openOnboarding();
+  else if (S.settings.seenVersion !== APP_VERSION) openChangelog(true);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && !overlays.length) renderMain(); });
+  if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost')) {
+    try {
+      const reg = await navigator.serviceWorker.register('./sw.js');
+      reg.addEventListener('updatefound', () => {
+        const nw = reg.installing;
+        nw && nw.addEventListener('statechange', () => {
+          if (nw.state === 'installed' && navigator.serviceWorker.controller) toast('已下載新版本', { label: '重新載入', fn: () => location.reload() });
+        });
+      });
+    } catch (e) { console.warn('sw', e); }
+  }
+}
+boot();
+</script>
+</body>
+</html>
